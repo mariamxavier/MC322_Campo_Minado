@@ -8,7 +8,7 @@ public class Player {
 
     /**
      * Construtor: inicializa o jogador com um saldo inicial.
-     * 
+     *
      * @param initialBalance valor inicial de crédito do jogador
      */
     public Player(double initialBalance) {
@@ -19,10 +19,11 @@ public class Player {
     }
 
     /**
-     * Registra uma aposta, deduzindo o valor do saldo.
-     * 
+     * Valida uma aposta sem deduzir imediatamente do saldo.
+     * A dedução ocorre apenas se o jogador perder.
+     *
      * @param amount valor apostado
-     * @throws IllegalArgumentException se amount for maior que o saldo
+     * @throws IllegalArgumentException se amount for inválido ou maior que o saldo
      */
     public void placeBet(double amount) {
         if (amount <= 0) {
@@ -31,12 +32,28 @@ public class Player {
         if (amount > balance) {
             throw new IllegalArgumentException("Saldo insuficiente para realizar a aposta");
         }
-        balance -= amount;
+        // Não deduzimos aqui: o valor será deduzido em loseBet() se perder.
+    }
+
+    /**
+     * Trata a perda da aposta, deduzindo o valor do saldo.
+     *
+     * @param amount valor que foi perdido (igual ao valor apostado)
+     */
+    public void loseBet(double amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Valor de perda não pode ser negativo");
+        }
+        if (amount >= balance) {
+            balance = 0;
+        } else {
+            balance -= amount;
+        }
     }
 
     /**
      * Adiciona os ganhos ao saldo do jogador após um saque.
-     * 
+     *
      * @param amount valor ganho a ser adicionado ao saldo
      */
     public void addWinnings(double amount) {
@@ -47,21 +64,8 @@ public class Player {
     }
 
     /**
-     * Trata a perda da aposta. 
-     * Neste modelo genérico, a aposta já é deduzida em placeBet(),
-     * então este método não aplica nova dedução.
-     * Pode ser expandido para efeitos colaterais (estatísticas, histórico, etc.).
-     * 
-     * @param amount valor que foi perdido (igual ao valor apostado)
-     */
-    public void loseBet(double amount) {
-        // A lógica de débito já ocorreu em placeBet().
-        // Aqui podemos registrar estatísticas ou notificações, se desejar.
-    }
-
-    /**
      * Retorna o saldo atual do jogador.
-     * 
+     *
      * @return saldo disponível
      */
     public double getBalance() {
@@ -71,7 +75,7 @@ public class Player {
     /**
      * Ajusta diretamente o saldo do jogador.
      * Útil para cenários de recarga ou ajustes administrativos.
-     * 
+     *
      * @param newBalance novo valor de saldo
      */
     public void setBalance(double newBalance) {

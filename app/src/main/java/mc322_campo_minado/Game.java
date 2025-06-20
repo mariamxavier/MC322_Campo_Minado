@@ -4,67 +4,74 @@ package mc322_campo_minado;
  * Gerencia o fluxo do jogo, orquestrando Board, Player e Bet.
  */
 public class Game {
-    private Board board;        // tabuleiro do jogo
-    private Player player;      // jogador com saldo para apostas
-    private Bet bet;            // objeto de aposta atual
-    private boolean isGameOver; // flag indicando fim de rodada
+    private final Board board;        // tabuleiro do jogo
+    private final Player player;      // jogador com saldo para apostas
+    private Bet bet;                  // aposta atual da rodada
+    private boolean isGameOver;       // flag indicando fim de rodada
 
     /**
      * Construtor: inicializa jogo com dimensões e número de minas.
-     * @param rows número de linhas
-     * @param cols número de colunas
+     *
+     * @param rows      número de linhas
+     * @param cols      número de colunas
      * @param mineCount quantidade de minas
      */
     public Game(int rows, int cols, int mineCount) {
         this.board = new Board(rows, cols, mineCount);
-        this.player = new Player(1000.0);  // saldo inicial padrão
+        this.player = new Player(1000.0);  // define saldo inicial padrão
         this.isGameOver = false;
     }
 
     /**
      * Inicia uma nova rodada de jogo com o valor de aposta informado.
+     * A chamada a placeBet valida se o jogador tem saldo suficiente,
+     * mas não deduz nada de imediato. A dedução ocorre em caso de perda.
+     *
      * @param betAmount valor apostado pelo jogador
+     * @throws IllegalArgumentException se valor de aposta for inválido
      */
     public void startGame(double betAmount) {
-        // Deduz o valor da aposta do saldo do jogador
+        // valida a aposta (confirma saldo suficiente)
         player.placeBet(betAmount);
-        // Gera novo tabuleiro com minas
+        // gera novo tabuleiro com minas
         board.generateBoard();
-        // Cria um novo objeto Bet para essa rodada
+        // inicializa o objeto Bet para controlar multiplicador e payout
         this.bet = new Bet(betAmount);
-        // Reseta estado de fim de jogo
+        // reseta a flag de fim de jogo
         this.isGameOver = false;
     }
 
     /**
      * Revela uma célula no tabuleiro e atualiza estado do jogo.
+     *
      * @param r índice da linha da célula
      * @param c índice da coluna da célula
-     * @return true se a célula não for mina, false se for mina
+     * @return true se a célula não for mina (continua jogando),
+     *         false se for mina (roda terminará)
      */
     public boolean revealCell(int r, int c) {
         Cell cell = board.getCell(r, c);
 
-        // Se já revelada ou jogo acabou, ignora clique
+        // ignora cliques em células já reveladas ou após fim de jogo
         if (cell.isRevealed() || isGameOver) {
             return true;
         }
 
-        // Marca a célula como revelada
+        // marca a célula como revelada
         cell.reveal();
 
-        // Se havia mina, fim de jogo e aposta perdida
         if (cell.hasMine()) {
-            isGameOver = true;
+            // ao clicar em mina, deduz a aposta do saldo e encerra
             player.loseBet(bet.getInitialBet());
+            isGameOver = true;
             return false;
         }
 
-        // Célula segura: recalcula multiplicador
+        // célula segura: atualiza multiplicador
         int safeCells = board.getRemainingSafeCells();
         bet.increaseMultiplier(safeCells, board.getRemainingMines());
 
-        // Se não restam células seguras, o jogador venceu
+        // se nenhuma célula segura restante, o jogador venceu
         if (safeCells == 0) {
             isGameOver = true;
         }
@@ -74,19 +81,20 @@ public class Game {
 
     /**
      * Permite ao jogador sacar os ganhos atuais e encerra a rodada.
-     * @return valor sacado (aposta × multiplicador)
+     *
+     * @return valor sacado (initialBet × currentMultiplier)
      */
     public double cashOut() {
         double payout = bet.getCurrentPayout();
-        // Adiciona o valor ganho ao saldo do jogador
+        // adiciona o valor ganho (incluindo stake) ao saldo
         player.addWinnings(payout);
-        // Encerra a rodada
         isGameOver = true;
         return payout;
     }
 
     /**
-     * Verifica se a rodada/jogo terminou.
+     * Verifica se a rodada/jogo terminou (por mina ou vitória).
+     *
      * @return true se terminou, false caso contrário
      */
     public boolean checkGameOver() {
@@ -94,24 +102,21 @@ public class Game {
     }
 
     /**
-     * Retorna o objeto Player para consulta de saldo.
-     * @return jogador atual
+     * @return objeto Player para consulta de saldo
      */
     public Player getPlayer() {
         return player;
     }
 
     /**
-     * Retorna o objeto Bet para consulta de multiplicador e payout.
-     * @return aposta atual
+     * @return objeto Bet para consulta de multiplicador e payout
      */
     public Bet getBet() {
         return bet;
     }
 
     /**
-     * Retorna o objeto Board para consulta do tabuleiro.
-     * @return tabuleiro atual
+     * @return objeto Board para consulta do tabuleiro
      */
     public Board getBoard() {
         return board;
