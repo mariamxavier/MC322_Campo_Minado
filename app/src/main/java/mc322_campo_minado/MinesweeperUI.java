@@ -4,47 +4,53 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Interface principal que orquestra os painéis de configuração, tabuleiro e status.
- * Controla a lógica do jogo usando Game.
+ * Interface principal que orquestra os painéis de configuração, tabuleiro, status e dica paga.
+ * Controla a lógica do jogo usando Game e exibe tudo com CellButton.
  */
 public class MinesweeperUI extends JFrame {
-    private SetupPanel setupPanel;   // painel de configurações iniciais
-    private BoardPanel boardPanel;   // painel do tabuleiro
-    private StatusPanel statusPanel; // painel de informações (saldo, mult, status)
-    private JButton cashOutButton;   // botão de saque manual
-    private Game game;               // lógica do jogo
+    private SetupPanel setupPanel;     // painel de configurações iniciais
+    private BoardPanel boardPanel;     // painel do tabuleiro (com CellButton)
+    private StatusPanel statusPanel;   // painel de informações (saldo, mult, status)
+    private JButton cashOutButton;     // botão de saque manual
+    private JButton hintButton;        // botão de dica paga
+    private Game game;                 // lógica do jogo
 
-    /**
-     * Construtor: monta a janela e posiciona os três painéis.
-     */
+    // Guarda a última célula clicada para usar na dica
+    private int lastClickedRow = -1, lastClickedCol = -1;
+    private CellButton lastClickedButton = null;
+
     public MinesweeperUI() {
         super("Minesweeper Bet Game");
         initComponents();
     }
 
-    /**
-     * Inicializa e posiciona os componentes na janela.
-     */
     private void initComponents() {
         setLayout(new BorderLayout());
 
-        // Painel superior: configuração e cash out
+        // Painel superior: configuração + Cash Out + Hint
         JPanel topPanel = new JPanel(new BorderLayout());
         setupPanel = new SetupPanel(e -> onStartClicked());
         topPanel.add(setupPanel, BorderLayout.CENTER);
 
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         cashOutButton = new JButton("Cash Out");
         cashOutButton.setEnabled(false);
         cashOutButton.addActionListener(e -> doCashOut());
-        topPanel.add(cashOutButton, BorderLayout.EAST);
+        buttons.add(cashOutButton);
 
+        hintButton = new JButton("Hint");
+        hintButton.setEnabled(false);
+        hintButton.addActionListener(e -> doHint());
+        buttons.add(hintButton);
+
+        topPanel.add(buttons, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
-        // Painel do tabuleiro (centro)
+        // Tabuleiro
         boardPanel = new BoardPanel();
         add(boardPanel, BorderLayout.CENTER);
 
-        // Painel de status (rodapé)
+        // Status
         statusPanel = new StatusPanel();
         add(statusPanel, BorderLayout.SOUTH);
 
@@ -54,11 +60,6 @@ public class MinesweeperUI extends JFrame {
         setVisible(true);
     }
 
-    /**
-     * Ação quando o usuário clica em "Start":
-     * lê parâmetros, inicializa Game e monta o tabuleiro.
-     * Preserva o saldo atual entre rodadas.
-     */
     private void onStartClicked() {
         try {
             int size = setupPanel.getBoardSize();
@@ -69,7 +70,6 @@ public class MinesweeperUI extends JFrame {
                 return;
             }
 
-            // Preserva saldo antes de recriar o jogo
             double prevBalance = (game != null)
                 ? game.getPlayer().getBalance()
                 : 1000.0;
@@ -78,15 +78,14 @@ public class MinesweeperUI extends JFrame {
             game.getPlayer().setBalance(prevBalance);
             game.startGame(bet);
 
-            // Atualiza UI de status
-            statusPanel.updateBalance(game.getPlayer().getBalance());
+            statusPanel.updateBalance(prevBalance);
             statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
             statusPanel.updateStatus("Playing");
             setupPanel.setStartEnabled(false);
             cashOutButton.setEnabled(true);
+            hintButton.setEnabled(false);
 
-            // Monta o tabuleiro interativo
-            boardPanel.buildBoard(size, size, (r, c, btn) -> handleCellClick(r, c, btn));
+            boardPanel.buildBoard(size, size, this::handleCellClick);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers");
         } catch (IllegalArgumentException ex) {
@@ -94,28 +93,26 @@ public class MinesweeperUI extends JFrame {
         }
     }
 
-    /**
-     * Trata o clique em uma célula: revela, atualiza UI
-     * e encerra rodada em caso de mina ou vitória.
-     */
-    private void handleCellClick(int r, int c, JButton btn) {
+    private void handleCellClick(int r, int c, CellButton btn) {
         if (game.checkGameOver()) return;
 
-        boolean safe = game.revealCell(r, c);
-        Cell cell = game.getBoard().getCell(r, c);
+        lastClickedRow = r;
+        lastClickedCol = c;
+        lastClickedButton = btn;
 
-        if (cell.hasMine()) {
-            btn.setText("💣");
+        boolean safe = game.revealCell(r, c);
+        if (game.getBoard().getCell(r, c).hasMine()) {
+            btn.showMine();
         } else {
-            int adj = countAdjacent(r, c);
-            btn.setText(adj > 0 ? String.valueOf(adj) : "");
+            btn.showGem();  // exibe o ícone único de gema
+            hintButton.setEnabled(true);
         }
         btn.setEnabled(false);
-
         statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
 
         if (!safe) {
             boardPanel.revealAllMines(game.getBoard());
+            btn.showExplosion();
             statusPanel.updateBalance(game.getPlayer().getBalance());
             endRound("Game Over!");
         } else if (game.checkGameOver()) {
@@ -125,9 +122,36 @@ public class MinesweeperUI extends JFrame {
         }
     }
 
-    /**
-     * Conta minas adjacentes a uma célula.
-     */
+    private void doHint() {
+        if (lastClickedRow < 0) {
+            JOptionPane.showMessageDialog(this, "No cell selected");
+            return;
+        }
+        double fee = game.getBet().getHintFee();
+        game.getPlayer().loseBet(fee);
+        statusPanel.updateBalance(game.getPlayer().getBalance());
+        statusPanel.updateStatus(String.format("Hint used: -%.2f", fee));
+
+        lastClickedButton.showGem();
+        hintButton.setEnabled(false);
+    }
+
+    private void doCashOut() {
+        double payout = game.cashOut();
+        statusPanel.updateBalance(game.getPlayer().getBalance());
+        statusPanel.updateStatus("Cashed out: " + String.format("%.2f", payout));
+        setupPanel.setStartEnabled(true);
+        cashOutButton.setEnabled(false);
+        hintButton.setEnabled(false);
+    }
+
+    private void endRound(String msg) {
+        statusPanel.updateStatus(msg);
+        setupPanel.setStartEnabled(true);
+        cashOutButton.setEnabled(false);
+        hintButton.setEnabled(false);
+    }
+
     private int countAdjacent(int r, int c) {
         int cnt = 0;
         Board b = game.getBoard();
@@ -143,30 +167,6 @@ public class MinesweeperUI extends JFrame {
         return cnt;
     }
 
-    /**
-     * Realiza cash out manual: atualiza saldo e status,
-     * e prepara para próxima rodada.
-     */
-    private void doCashOut() {
-        double payout = game.cashOut();
-        statusPanel.updateBalance(game.getPlayer().getBalance());
-        statusPanel.updateStatus("Cashed out: " + String.format("%.2f", payout));
-        setupPanel.setStartEnabled(true);
-        cashOutButton.setEnabled(false);
-    }
-
-    /**
-     * Encerra a rodada, atualiza status e habilita Start.
-     */
-    private void endRound(String message) {
-        statusPanel.updateStatus(message);
-        setupPanel.setStartEnabled(true);
-        cashOutButton.setEnabled(false);
-    }
-
-    /**
-     * Ponto de entrada da aplicação.
-     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MinesweeperUI::new);
     }

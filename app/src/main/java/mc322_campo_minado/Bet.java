@@ -3,13 +3,14 @@ package mc322_campo_minado;
 /**
  * Representa uma aposta genérica, armazenando o valor inicial
  * e um multiplicador que cresce conforme o jogador revela células seguras.
+ * Inclui método para cálculo de taxa de dica (hint).
  */
 public class Bet {
     private double initialBet;        // valor apostado inicialmente
-    private double currentMultiplier;  // multiplicador atual de payout
+    private double currentMultiplier; // multiplicador atual de payout
 
     /**
-     * Construtor: define o valor inicial da aposta e inicializa multiplicador em 1x.
+     * Construtor: define o valor inicial da aposta e inicializa multiplicador em 0.5x.
      *
      * @param initialBet valor apostado
      */
@@ -26,11 +27,10 @@ public class Bet {
      * e no número de minas não reveladas.
      * Aplica a fórmula:
      *   multiplicadorNovo = multiplicadorAtual * (casasRestantes + minasRestantes) / casasRestantes
-     * onde (casasRestantes + minasRestantes) = total de células não reveladas.
-     * Assim, reflete a relação de probabilidade de acertar uma casa segura.
+     * onde (casasRestantes + minasRestantes) é o total de células não reveladas.
      *
-     * @param safeCells       número de casas sem mina ainda não reveladas
-     * @param remainingMines  número de minas ainda não reveladas
+     * @param safeCells      número de casas sem mina ainda não reveladas
+     * @param remainingMines número de minas ainda não reveladas
      */
     public void increaseMultiplier(int safeCells, int remainingMines) {
         if (safeCells <= 0) {
@@ -70,7 +70,17 @@ public class Bet {
     }
 
     /**
-     * Redefine o multiplicador para 1x (útil se quiser reiniciar entre rodadas).
+     * Calcula a taxa para uso de dica (hint).
+     * A taxa é 10% do payout atual (initialBet * currentMultiplier).
+     *
+     * @return valor da taxa de hint
+     */
+    public double getHintFee() {
+        return getCurrentPayout() * 0.10;
+    }
+
+    /**
+     * Redefine o multiplicador para 0.5x (útil para reiniciar entre rodadas).
      */
     public void resetMultiplier() {
         this.currentMultiplier = 0.5;
