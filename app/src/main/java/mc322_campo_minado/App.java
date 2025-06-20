@@ -1,4 +1,3 @@
-// File: Cell.java
 package mc322_campo_minado;
 
 /**
@@ -14,10 +13,10 @@ public class App {
     }
 
     /**
-     * Ponto de entrada principal: inicia o Swing UI.
+     * Ponto de entrada principal: inicia a UI Swing.
      * @param args argumentos de linha de comando (ignorados)
      */
     public static void main(String[] args) {
-        javax.swing.SwingUtilities.invokeLater(() -> new MinesweeperUI(8, 8, 10));
+        javax.swing.SwingUtilities.invokeLater(MinesweeperUI::new);
     }
 }
