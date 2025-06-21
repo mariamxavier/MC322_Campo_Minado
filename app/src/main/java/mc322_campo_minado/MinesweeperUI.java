@@ -2,12 +2,16 @@ package mc322_campo_minado;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Interface principal que orquestra os painéis de configuração, tabuleiro, status e dica paga.
  * Controla a lógica do jogo usando Game e exibe tudo com CellButton.
  */
 public class MinesweeperUI extends JFrame {
+    private static final Color HINT_SAFE_BG = Color.decode("#2E7D32");
+
     private SetupPanel setupPanel;     // painel de configurações iniciais
     private BoardPanel boardPanel;     // painel do tabuleiro (com CellButton)
     private StatusPanel statusPanel;   // painel de informações (saldo, mult, status)
@@ -82,7 +86,7 @@ public class MinesweeperUI extends JFrame {
             statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
             statusPanel.updateStatus("Playing");
             setupPanel.setStartEnabled(false);
-            cashOutButton.setEnabled(true);
+            cashOutButton.setEnabled(false);  
             hintButton.setEnabled(false);
 
             boardPanel.buildBoard(size, size, this::handleCellClick);
@@ -106,6 +110,7 @@ public class MinesweeperUI extends JFrame {
         } else {
             btn.showGem();  // exibe o ícone único de gema
             hintButton.setEnabled(true);
+            cashOutButton.setEnabled(true); // permite saque após clicar em célula
         }
         btn.setEnabled(false);
         statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
@@ -127,6 +132,67 @@ public class MinesweeperUI extends JFrame {
             JOptionPane.showMessageDialog(this, "No cell selected");
             return;
         }
+
+        double fee = game.getBet().getHintFee();
+        if (game.getPlayer().getBalance() < fee) {
+            JOptionPane.showMessageDialog(this, "Insufficient balance for hint");
+            return;
+        }
+
+        game.getPlayer().loseBet(fee);
+        statusPanel.updateBalance(game.getPlayer().getBalance());
+        statusPanel.updateStatus(String.format("Hint used: -%.2f", fee));
+
+        Board board = game.getBoard();
+        CellButton[][] buttons = boardPanel.getCellButtons();
+        List<CellButton> affectedButtons = new ArrayList<>();
+
+        int[][] directions = {
+            {-1, 0}, // cima
+            {1, 0},  // baixo
+            {0, -1}, // esquerda
+            {0, 1}   // direita
+        };
+
+        for (int[] dir : directions) {
+            int rr = lastClickedRow + dir[0];
+            int cc = lastClickedCol + dir[1];
+
+            if (rr >= 0 && rr < board.getRows() && cc >= 0 && cc < board.getCols()) {
+                Cell cell = board.getCell(rr, cc);
+                CellButton btn = buttons[rr][cc];
+
+                if (!cell.isRevealed()) {
+                    if (cell.hasMine()) {
+                        btn.showMine(); // ícone + fundo vermelho
+                    } else {
+                        btn.setIcon(null); // não mostra a gema
+                        btn.setBackground(HINT_SAFE_BG); // apenas fundo verde
+                    }
+                    btn.setEnabled(false); // impede clique temporariamente
+                    affectedButtons.add(btn);
+                }
+            }
+        }
+
+        hintButton.setEnabled(false);
+
+        // Após 1 segundo, volta ao normal
+        Timer timer = new Timer(1000, e -> {
+            for (CellButton btn : affectedButtons) {
+                btn.reset();
+            }
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+
+    /*private void doHint() {
+        if (lastClickedRow < 0) {
+            JOptionPane.showMessageDialog(this, "No cell selected");
+            return;
+        }
         double fee = game.getBet().getHintFee();
         game.getPlayer().loseBet(fee);
         statusPanel.updateBalance(game.getPlayer().getBalance());
@@ -134,7 +200,7 @@ public class MinesweeperUI extends JFrame {
 
         lastClickedButton.showGem();
         hintButton.setEnabled(false);
-    }
+    }*/
 
     private void doCashOut() {
         double payout = game.cashOut();
