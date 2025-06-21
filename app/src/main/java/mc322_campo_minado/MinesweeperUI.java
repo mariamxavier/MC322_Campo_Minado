@@ -109,10 +109,10 @@ public class MinesweeperUI extends JFrame {
         if (game.getBoard().getCell(r, c).hasMine()) {
             btn.showMine();
         } else {
-            btn.showGem();  // exibe o ícone único de gema
-            hintButton.setEnabled(true);
-            if (game.getSafeCellsRevealed() >= 3) {
-                cashOutButton.setEnabled(true);
+            btn.showGem();                           // exibe o ícone único de gema
+            hintButton.setEnabled(true);             // ativa o botão de dica quando uma célula segura é revelada
+            if (game.getSafeCellsRevealed() >= 3) {  // se 3 células seguras foram reveladas
+                cashOutButton.setEnabled(true);      // ativa o botão de saque
             }
         }
         btn.setEnabled(false);
@@ -195,21 +195,6 @@ public class MinesweeperUI extends JFrame {
         timer.setRepeats(false);
         timer.start();
     }
-
-
-    /*private void doHint() {
-        if (lastClickedRow < 0) {
-            JOptionPane.showMessageDialog(this, "No cell selected");
-            return;
-        }
-        double fee = game.getBet().getHintFee();
-        game.getPlayer().loseBet(fee);
-        statusPanel.updateBalance(game.getPlayer().getBalance());
-        statusPanel.updateStatus(String.format("Hint used: -%.2f", fee));
-
-        lastClickedButton.showGem();
-        hintButton.setEnabled(false);
-    }*/
 
     private void doCashOut() {
         double payout = game.cashOut();
