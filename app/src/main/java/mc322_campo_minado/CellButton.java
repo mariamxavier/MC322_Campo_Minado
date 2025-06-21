@@ -1,8 +1,9 @@
 package mc322_campo_minado;
 
 import javax.swing.*;
-import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.event.*;
+import javax.imageio.ImageIO;
 
 /**
  * Um JButton customizado para representar cada célula do tabuleiro
@@ -15,24 +16,26 @@ public class CellButton extends JButton {
     private static final Color BG_HOVER   = Color.decode("#2A2E40");
     private static final Color BG_MINE    = Color.decode("#B71C1C"); // mina/explosão
 
-    private static Icon gemIcon;
-    private static Icon mineIcon;
-    private static Icon flagIcon;
-    private static Icon explosionAnim;
+    private static ImageIcon gemIcon;
+    private static ImageIcon mineIcon;
+    private static ImageIcon flagIcon;
+    private static ImageIcon explosionAnim;
+
+    private ImageIcon currentBaseIcon = null;  // ícone atual, antes do resize
 
     static {
         try {
             // Carrega ícones via ClassLoader
-            gemIcon      = new ImageIcon(ImageIO.read(
+            gemIcon = new ImageIcon(ImageIO.read(
                 CellButton.class.getClassLoader().getResourceAsStream("assets/gem_medium.png")
             ));
-            mineIcon     = new ImageIcon(ImageIO.read(
+            mineIcon = new ImageIcon(ImageIO.read(
                 CellButton.class.getClassLoader().getResourceAsStream("assets/mine.png")
             ));
-            flagIcon     = new ImageIcon(ImageIO.read(
+            flagIcon = new ImageIcon(ImageIO.read(
                 CellButton.class.getClassLoader().getResourceAsStream("assets/flag.png")
             ));
-            explosionAnim= new ImageIcon(ImageIO.read(
+            explosionAnim = new ImageIcon(ImageIO.read(
                 CellButton.class.getClassLoader().getResourceAsStream("assets/explosion.png")
             ));
         } catch (Exception e) {
@@ -49,47 +52,83 @@ public class CellButton extends JButton {
         setFocusPainted(false);
         setOpaque(true);
         setIcon(null);
+        setHorizontalAlignment(SwingConstants.CENTER);
+        setVerticalAlignment(SwingConstants.CENTER);
+
+        // Redimensiona o ícone conforme o tamanho da célula
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (currentBaseIcon != null) {
+                    int size = Math.min(getWidth(), getHeight());
+                    setIcon(resizeIcon(currentBaseIcon, size));
+                }
+            }
+        });
 
         // Efeito hover
-        addMouseListener(new java.awt.event.MouseAdapter() {
+        addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
+            public void mouseEntered(MouseEvent e) {
                 setBackground(BG_HOVER);
             }
+
             @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
+            public void mouseExited(MouseEvent e) {
                 setBackground(BG_DEFAULT);
             }
         });
     }
 
-    /**
-     * Exibe o ícone de gema (único tipo) para casas seguras.
-     */
-    public void showGem() {
-        setIcon(gemIcon);
+    /** Redimensiona o ícone para manter formato quadrado centralizado */
+    private Icon resizeIcon(ImageIcon icon, int size) {
+        Image img = icon.getImage();
+        Image resized = img.getScaledInstance(size, size, Image.SCALE_SMOOTH);
+        return new ImageIcon(resized);
     }
 
-    /** Exibe o ícone de mina e background de alerta. */
+    /** Exibe o ícone de gema (unico tipo) para casas seguras. */
+    public void showGem() {
+        if (gemIcon != null) {
+            currentBaseIcon = gemIcon;
+            int size = Math.min(getWidth(), getHeight());
+            setIcon(resizeIcon(gemIcon, size));
+        }
+    }
+
+    /** Exibe o ícone de mina e background de alerta.*/
     public void showMine() {
-        setIcon(mineIcon);
+        if (mineIcon != null) {
+            currentBaseIcon = mineIcon;
+            int size = Math.min(getWidth(), getHeight());
+            setIcon(resizeIcon(mineIcon, size));
+        }
         setBackground(BG_MINE);
     }
 
-    /** Exibe o ícone de bandeira. */
+    /** Exibe o ícone de bandeira*/
     public void showFlag() {
-        setIcon(flagIcon);
+        if (flagIcon != null) {
+            currentBaseIcon = flagIcon;
+            int size = Math.min(getWidth(), getHeight());
+            setIcon(resizeIcon(flagIcon, size));
+        }
     }
 
     /** Exibe animação de explosão sobre a célula. */
     public void showExplosion() {
-        setIcon(explosionAnim);
+        if (explosionAnim != null) {
+            currentBaseIcon = explosionAnim;
+            int size = Math.min(getWidth(), getHeight());
+            setIcon(resizeIcon(explosionAnim, size));
+        }
         setBackground(BG_MINE);
     }
 
-    /** Restaura o estado visual original (antes de qualquer reveal). */
+    /** Restaura o estado visual original (antes de qualquer reveal)*/
     public void reset() {
         setIcon(null);
+        currentBaseIcon = null;
         setEnabled(true);
         setBackground(BG_DEFAULT);
     }

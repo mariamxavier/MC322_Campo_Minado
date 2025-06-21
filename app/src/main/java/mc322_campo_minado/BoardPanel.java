@@ -70,4 +70,15 @@ public class BoardPanel extends JPanel {
     public interface CellClickListener {
         void onCellClick(int row, int col, CellButton button);
     }
+
+    /**
+     * Retorna a matriz de botões que representam as células do tabuleiro.
+     *
+     * @return matriz de CellButton
+     */
+
+    public CellButton[][] getCellButtons() {
+        return cellButtons;
+    }
+
 }
