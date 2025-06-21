@@ -22,6 +22,7 @@ public class MinesweeperUI extends JFrame {
     // Guarda a última célula clicada para usar na dica
     private int lastClickedRow = -1, lastClickedCol = -1;
     private CellButton lastClickedButton = null;
+    private double fee = 0.0; // taxa da dica paga
 
     public MinesweeperUI() {
         super("Minesweeper Bet Game");
@@ -110,7 +111,9 @@ public class MinesweeperUI extends JFrame {
         } else {
             btn.showGem();  // exibe o ícone único de gema
             hintButton.setEnabled(true);
-            cashOutButton.setEnabled(true); // permite saque após clicar em célula
+            if (game.getSafeCellsRevealed() >= 3) {
+                cashOutButton.setEnabled(true);
+            }
         }
         btn.setEnabled(false);
         statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
@@ -133,13 +136,19 @@ public class MinesweeperUI extends JFrame {
             return;
         }
 
-        double fee = game.getBet().getHintFee();
+        if (game.isHintUsed()) {
+            JOptionPane.showMessageDialog(this, "Você já usou uma dica nesta rodada.");
+            return;
+        }
+
+        fee = fee + game.getBet().getHintFee();
         if (game.getPlayer().getBalance() < fee) {
             JOptionPane.showMessageDialog(this, "Insufficient balance for hint");
             return;
         }
 
         game.getPlayer().loseBet(fee);
+        game.setHintUsed(true); // já usou a dica
         statusPanel.updateBalance(game.getPlayer().getBalance());
         statusPanel.updateStatus(String.format("Hint used: -%.2f", fee));
 

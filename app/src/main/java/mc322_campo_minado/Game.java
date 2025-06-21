@@ -8,6 +8,9 @@ public class Game {
     private final Player player;      // jogador com saldo para apostas
     private Bet bet;                  // aposta atual da rodada
     private boolean isGameOver;       // flag indicando fim de rodada
+    private boolean hintUsed;         // flag indicando se dica paga foi usada
+    private int safeCellsRevealed;    // contador de jogadas seguras
+
 
     /**
      * Construtor: inicializa jogo com dimensões e número de minas.
@@ -20,6 +23,8 @@ public class Game {
         this.board = new Board(rows, cols, mineCount);
         this.player = new Player(1000.0);  // define saldo inicial padrão
         this.isGameOver = false;
+        this.hintUsed = false;
+        this.safeCellsRevealed = 0; // inicia contador de células seguras reveladas
     }
 
     /**
@@ -61,11 +66,14 @@ public class Game {
         cell.reveal();
 
         if (cell.hasMine()) {
-            // ao clicar em mina, deduz a aposta do saldo e encerra
             player.loseBet(bet.getInitialBet());
+            // ao clicar em mina, deduz a aposta do saldo e encerra
             isGameOver = true;
             return false;
         }
+
+         // Incrementa o número de células seguras reveladas
+        safeCellsRevealed++;
 
         // célula segura: atualiza multiplicador
         int safeCells = board.getRemainingSafeCells();
@@ -78,6 +86,17 @@ public class Game {
 
         return true;
     }
+
+    /**
+     * Retorna o número de células seguras reveladas nesta rodada.
+     * Incrementa a cada revelação de célula segura.
+     *
+     * @return número de células seguras reveladas
+     */
+    public int getSafeCellsRevealed() {
+        return safeCellsRevealed;
+    }
+
 
     /**
      * Permite ao jogador sacar os ganhos atuais e encerra a rodada.
@@ -121,4 +140,23 @@ public class Game {
     public Board getBoard() {
         return board;
     }
+
+    /**
+     * Verifica se uma dica paga foi usada nesta rodada.
+     *
+     * @return true se a dica foi usada, false caso contrário
+     */
+    public boolean isHintUsed() {
+        return hintUsed;
+    }
+
+    /**
+     * Define se uma dica paga foi usada nesta rodada.
+     *
+     * @param used true se a dica foi usada, false caso contrário
+     */
+    public void setHintUsed(boolean used) {
+        this.hintUsed = used;
+    }
+
 }
