@@ -19,7 +19,7 @@ public class Bet {
             throw new IllegalArgumentException("Valor de aposta deve ser maior que zero");
         }
         this.initialBet = initialBet;
-        this.currentMultiplier = 0.5;
+        this.currentMultiplier = 0.4;
     }
 
     /**
@@ -76,13 +76,13 @@ public class Bet {
      * @return valor da taxa de hint
      */
     public double getHintFee() {
-        return getCurrentPayout() * 0.10;
+        return getCurrentPayout() * 0.25;
     }
 
     /**
      * Redefine o multiplicador para 0.5x (útil para reiniciar entre rodadas).
      */
     public void resetMultiplier() {
-        this.currentMultiplier = 0.5;
+        this.currentMultiplier = 0.4;
     }
 }
