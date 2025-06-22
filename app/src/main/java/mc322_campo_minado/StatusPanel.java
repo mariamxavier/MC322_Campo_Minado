@@ -13,6 +13,7 @@ public class StatusPanel extends JPanel {
     private JLabel balanceLabel;         // exibe o saldo atual
     private JLabel multiplierLabel;      // exibe o multiplicador em tempo real
     private JLabel statusLabel;          // exibe a mensagem de status
+    private JLabel payoutLabel;         // exibe o valor do payout (opcional, se necessário)
 
     /**
      * Construtor: inicializa o layout e os rótulos padrão.
@@ -22,10 +23,13 @@ public class StatusPanel extends JPanel {
         balanceLabel = new JLabel("Balance: --");
         multiplierLabel = new JLabel("Multiplier: --");
         statusLabel = new JLabel("Status: Ready");
+        payoutLabel = new JLabel("Payout: --");
+
 
         add(balanceLabel);
         add(multiplierLabel);
         add(statusLabel);
+        add(payoutLabel);
     }
 
     /**
@@ -50,5 +54,13 @@ public class StatusPanel extends JPanel {
      */
     public void updateStatus(String msg) {
         statusLabel.setText("Status: " + msg);
+    }
+
+    /**Add commentMore actions
+     * Atualiza o rótulo de payout.
+     * @param value novo valor de payout
+     */
+    public void updatePayout(double value) {
+        payoutLabel.setText("Payout: " + String.format("%.2f", value));
     }
 }
