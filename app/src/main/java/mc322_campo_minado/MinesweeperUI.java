@@ -22,7 +22,6 @@ public class MinesweeperUI extends JFrame {
     // Guarda a última célula clicada para usar na dica
     private int lastClickedRow = -1, lastClickedCol = -1;
     private CellButton lastClickedButton = null;
-    private double fee = 0.0; // taxa da dica paga
 
     public MinesweeperUI() {
         super("Minesweeper Bet Game");
@@ -83,9 +82,10 @@ public class MinesweeperUI extends JFrame {
             game.getPlayer().setBalance(prevBalance);
             game.startGame(bet);
 
-            statusPanel.updateBalance(prevBalance);
+            statusPanel.updateBalance(game.getPlayer().getBalance());
             statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
-            statusPanel.updateStatus("Playing");
+            statusPanel.updateStatus("Bet placed " + String.format("%.2f", bet));
+            statusPanel.updatePayout(game.getBet().getCurrentPayout());
             setupPanel.setStartEnabled(false);
             cashOutButton.setEnabled(false);  
             hintButton.setEnabled(false);
@@ -117,6 +117,7 @@ public class MinesweeperUI extends JFrame {
         }
         btn.setEnabled(false);
         statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
+        statusPanel.updatePayout(game.getBet().getCurrentPayout());
 
         if (!safe) {
             boardPanel.revealAllMines(game.getBoard());
@@ -141,7 +142,7 @@ public class MinesweeperUI extends JFrame {
             return;
         }
 
-        fee = fee + game.getBet().getHintFee();
+        double fee = game.getBet().getHintFee();
         if (game.getPlayer().getBalance() < fee) {
             JOptionPane.showMessageDialog(this, "Insufficient balance for hint");
             return;
@@ -196,21 +197,6 @@ public class MinesweeperUI extends JFrame {
         timer.start();
     }
 
-
-    /*private void doHint() {
-        if (lastClickedRow < 0) {
-            JOptionPane.showMessageDialog(this, "No cell selected");
-            return;
-        }
-        double fee = game.getBet().getHintFee();
-        game.getPlayer().loseBet(fee);
-        statusPanel.updateBalance(game.getPlayer().getBalance());
-        statusPanel.updateStatus(String.format("Hint used: -%.2f", fee));
-
-        lastClickedButton.showGem();
-        hintButton.setEnabled(false);
-    }*/
-
     private void doCashOut() {
         double payout = game.cashOut();
         statusPanel.updateBalance(game.getPlayer().getBalance());
@@ -236,7 +222,7 @@ public class MinesweeperUI extends JFrame {
                 if (rr >= 0 && rr < b.getRows() && cc >= 0 && cc < b.getCols()
                     && b.getCell(rr, cc).hasMine()) {
                     cnt++;
-                }
+              }
             }
         }
         return cnt;
