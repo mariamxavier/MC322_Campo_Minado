@@ -10,8 +10,6 @@ import java.util.List;
  * Controla a lógica do jogo usando Game e exibe tudo com CellButton.
  */
 public class MinesweeperUI extends JFrame {
-    private static final Color HINT_SAFE_BG = Color.decode("#2E7D32");
-
     private SetupPanel setupPanel;     // painel de configurações iniciais
     private BoardPanel boardPanel;     // painel do tabuleiro (com CellButton)
     private StatusPanel statusPanel;   // painel de informações (saldo, mult, status)
@@ -19,10 +17,11 @@ public class MinesweeperUI extends JFrame {
     private JButton hintButton;        // botão de dica paga
     private Game game;                 // lógica do jogo
 
+    private static final Color HINT_SAFE_BG = Color.decode("#2E7D32");
+
     // Guarda a última célula clicada para usar na dica
     private int lastClickedRow = -1, lastClickedCol = -1;
     private CellButton lastClickedButton = null;
-    private double fee = 0.0; // taxa da dica paga
 
     public MinesweeperUI() {
         super("Minesweeper Bet Game");
@@ -87,10 +86,10 @@ public class MinesweeperUI extends JFrame {
             statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
             statusPanel.updateStatus("Playing");
             setupPanel.setStartEnabled(false);
-            cashOutButton.setEnabled(false);  
+            cashOutButton.setEnabled(true);
             hintButton.setEnabled(false);
 
-            boardPanel.buildBoard(size, size, this::handleCellClick);
+            boardPanel.buildBoard(game.getBoard(), this::handleCellClick);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers");
         } catch (IllegalArgumentException ex) {
@@ -106,16 +105,8 @@ public class MinesweeperUI extends JFrame {
         lastClickedButton = btn;
 
         boolean safe = game.revealCell(r, c);
-        if (game.getBoard().getCell(r, c).hasMine()) {
-            btn.showMine();
-        } else {
-            btn.showGem();                           // exibe o ícone único de gema
-            hintButton.setEnabled(true);             // ativa o botão de dica quando uma célula segura é revelada
-            if (game.getSafeCellsRevealed() >= 3) {  // se 3 células seguras foram reveladas
-                cashOutButton.setEnabled(true);      // ativa o botão de saque
-            }
-        }
-        btn.setEnabled(false);
+        
+        hintButton.setEnabled(true);
         statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
 
         if (!safe) {
@@ -136,19 +127,13 @@ public class MinesweeperUI extends JFrame {
             return;
         }
 
-        if (game.isHintUsed()) {
-            JOptionPane.showMessageDialog(this, "Você já usou uma dica nesta rodada.");
-            return;
-        }
-
-        fee = fee + game.getBet().getHintFee();
+        double fee = game.getBet().getHintFee();
         if (game.getPlayer().getBalance() < fee) {
             JOptionPane.showMessageDialog(this, "Insufficient balance for hint");
             return;
         }
 
         game.getPlayer().loseBet(fee);
-        game.setHintUsed(true); // já usou a dica
         statusPanel.updateBalance(game.getPlayer().getBalance());
         statusPanel.updateStatus(String.format("Hint used: -%.2f", fee));
 

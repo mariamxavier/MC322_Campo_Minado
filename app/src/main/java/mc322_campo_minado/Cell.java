@@ -1,5 +1,8 @@
 package mc322_campo_minado;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Classe que representa cada célula do tabuleiro.
  * Contém informações sobre se a célula possui mina e se foi revelada.
@@ -7,6 +10,7 @@ package mc322_campo_minado;
 public class Cell {
     private boolean hasMine;    // indica presença de mina na célula
     private boolean isRevealed; // indica se a célula já foi revelada
+    private List<Observer> observers = new ArrayList<>(); // lista de observadores para notificações
 
     /**
      * Construtor: inicializa célula sem mina e não revelada.
@@ -38,6 +42,7 @@ public class Cell {
      */
     public void reveal() {
         this.isRevealed = true;
+        notifyObservers(); // Notifica observadores sobre a revelação
     }
 
     /**
@@ -46,5 +51,23 @@ public class Cell {
      */
     public boolean isRevealed() {
         return isRevealed;
+    }
+
+    /**
+     * Registra um observador para notificações sobre mudanças nesta célula.
+     * @param observer objeto que implementa a interface Observer
+     */
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    /**
+     * Notifica todos os observadores sobre mudanças na célula.
+     * Chama o método update() em cada um dos observadores.
+     */
+    public void notifyObservers() {
+        for (Observer observer : observers) {
+            observer.update();
+        }
     }
 }

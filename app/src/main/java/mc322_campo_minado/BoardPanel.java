@@ -25,14 +25,17 @@ public class BoardPanel extends JPanel {
      * @param cols     quantidade de colunas
      * @param listener callback chamado em cada clique, recebendo (row, col, button)
      */
-    public void buildBoard(int rows, int cols, CellClickListener listener) {
+    public void buildBoard(Board board, CellClickListener listener) {
+        int rows = board.getRows();
+        int cols = board.getCols();
         removeAll();
         setLayout(new GridLayout(rows, cols, 4, 4));  // espaços entre células
         cellButtons = new CellButton[rows][cols];
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                CellButton btn = new CellButton();
+                Cell cell = board.getCell(r, c);
+                CellButton btn = new CellButton(cell);
                 btn.reset();
                 cellButtons[r][c] = btn;
                 final int rr = r, cc = c;
@@ -71,14 +74,7 @@ public class BoardPanel extends JPanel {
         void onCellClick(int row, int col, CellButton button);
     }
 
-    /**
-     * Retorna a matriz de botões que representam as células do tabuleiro.
-     *
-     * @return matriz de CellButton
-     */
-
     public CellButton[][] getCellButtons() {
         return cellButtons;
     }
-
 }
