@@ -38,6 +38,8 @@ public class Game {
     public void startGame(double betAmount) {
         // valida a aposta (confirma saldo suficiente)
         player.placeBet(betAmount);
+        // deduz o valor da aposta do saldo do jogadorAdd commentMore actions
+        player.loseBet(betAmount);
         // gera novo tabuleiro com minas
         board.generateBoard();
         // inicializa o objeto Bet para controlar multiplicador e payout
@@ -66,7 +68,6 @@ public class Game {
         cell.reveal();
 
         if (cell.hasMine()) {
-            player.loseBet(bet.getInitialBet());
             // ao clicar em mina, deduz a aposta do saldo e encerra
             isGameOver = true;
             return false;

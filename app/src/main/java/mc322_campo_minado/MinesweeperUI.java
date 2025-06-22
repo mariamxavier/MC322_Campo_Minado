@@ -82,9 +82,10 @@ public class MinesweeperUI extends JFrame {
             game.getPlayer().setBalance(prevBalance);
             game.startGame(bet);
 
-            statusPanel.updateBalance(prevBalance);
+            statusPanel.updateBalance(game.getPlayer().getBalance());
             statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
-            statusPanel.updateStatus("Playing");
+            statusPanel.updateStatus("Bet placed " + String.format("%.2f", bet));
+            statusPanel.updatePayout(game.getBet().getCurrentPayout());
             setupPanel.setStartEnabled(false);
             cashOutButton.setEnabled(true);
             hintButton.setEnabled(false);
@@ -108,6 +109,7 @@ public class MinesweeperUI extends JFrame {
         
         hintButton.setEnabled(true);
         statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
+        statusPanel.updatePayout(game.getBet().getCurrentPayout());
 
         if (!safe) {
             boardPanel.revealAllMines(game.getBoard());
