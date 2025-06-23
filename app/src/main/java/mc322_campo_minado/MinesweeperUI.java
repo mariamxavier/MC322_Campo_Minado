@@ -95,6 +95,7 @@ public class MinesweeperUI extends JFrame {
             game.getPlayer().setBalance(prevBalance);
             game.startGame(bet);
 
+            // Atualiza os painéis de status e desabilita botões de ação
             statusPanel.setPlayer(game.getPlayer());
             statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
             statusPanel.updateStatus("Playing");
@@ -104,6 +105,7 @@ public class MinesweeperUI extends JFrame {
             cashOutButton.setEnabled(false);
             hintButton.setEnabled(false);
 
+            // Monta o tabuleiro para a nova rodada
             boardPanel.buildBoard(game.getBoard(), this::handleCellClick);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers");
@@ -123,6 +125,7 @@ public class MinesweeperUI extends JFrame {
     private void handleCellClick(int r, int c, CellButton btn) {
         if (game.checkGameOver()) return;
 
+        // Guarda a última célula clicada para uso da dica
         lastClickedRow = r;
         lastClickedCol = c;
         lastClickedButton = btn;
@@ -133,6 +136,7 @@ public class MinesweeperUI extends JFrame {
         } else {
             btn.showGem();
             hintButton.setEnabled(true);
+            // Só libera o cash out após 3 células seguras
             if (game.getSafeCellsRevealed() >= 3) {
                 cashOutButton.setEnabled(true);
             }
@@ -200,6 +204,7 @@ public class MinesweeperUI extends JFrame {
             int rr = lastClickedRow + dir[0];
             int cc = lastClickedCol + dir[1];
 
+            // Verifica se a posição é válida no tabuleiro
             if (rr >= 0 && rr < board.getRows() && cc >= 0 && cc < board.getCols()) {
                 Cell cell = board.getCell(rr, cc);
                 CellButton btn = buttons[rr][cc];
@@ -221,6 +226,7 @@ public class MinesweeperUI extends JFrame {
 
         // Após 1 segundo, volta ao normal
         Timer timer = new Timer(1000, e -> {
+            // Restaura o estado visual dos botões afetados
             for (CellButton btn : affectedButtons) {
                 btn.reset();
             }
@@ -255,7 +261,7 @@ public class MinesweeperUI extends JFrame {
     /**
      * Método principal. Inicia a interface Swing do jogo.
      *
-     * @param args argumentos de linha de comando (não utilizados)
+     * @param args argumentos de linha de comando
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MinesweeperUI::new);
