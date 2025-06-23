@@ -42,6 +42,18 @@ public class Bet {
     }
 
     /**
+     * Aplica a taxa de dica (hint fee) ao payout atual.
+     * Deduz 25% do payout atual (initialBet * currentMultiplier) como taxa de dica.
+     */
+    public void applyHintFee() {
+        double fee = getHintFee();
+        double payout = getCurrentPayout();
+
+        double newPayout = payout - fee;
+        this.currentMultiplier = newPayout / initialBet;
+    }
+
+    /**
      * Retorna o valor total que seria recebido ao sacar:
      * initialBet * currentMultiplier.
      *
@@ -71,7 +83,7 @@ public class Bet {
 
     /**
      * Calcula a taxa para uso de dica (hint).
-     * A taxa é 10% do payout atual (initialBet * currentMultiplier).
+     * A taxa é 25% do payout atual (initialBet * currentMultiplier).
      *
      * @return valor da taxa de hint
      */

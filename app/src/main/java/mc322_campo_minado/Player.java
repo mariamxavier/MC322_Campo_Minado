@@ -32,7 +32,6 @@ public class Player {
         if (amount > balance) {
             throw new IllegalArgumentException("Saldo insuficiente para realizar a aposta");
         }
-        // Não deduzimos aqui: o valor será deduzido em loseBet() se perder.
     }
 
     /**

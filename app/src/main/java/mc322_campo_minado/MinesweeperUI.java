@@ -87,7 +87,7 @@ public class MinesweeperUI extends JFrame {
             statusPanel.updateStatus("Bet placed " + String.format("%.2f", bet));
             statusPanel.updatePayout(game.getBet().getCurrentPayout());
             setupPanel.setStartEnabled(false);
-            cashOutButton.setEnabled(true);
+            cashOutButton.setEnabled(false);
             hintButton.setEnabled(false);
 
             boardPanel.buildBoard(game.getBoard(), this::handleCellClick);
@@ -106,8 +106,17 @@ public class MinesweeperUI extends JFrame {
         lastClickedButton = btn;
 
         boolean safe = game.revealCell(r, c);
-        
-        hintButton.setEnabled(true);
+        if (game.getBoard().getCell(r, c).hasMine()) {
+            btn.showMine();
+        } else {
+            btn.showGem();  // exibe o ícone único de gema
+            hintButton.setEnabled(true);
+            if (game.getSafeCellsRevealed() >= 3) {
+                cashOutButton.setEnabled(true);
+            }
+        }
+        btn.setEnabled(false);
+        hintButton.setEnabled(true); 
         statusPanel.updateMultiplier(game.getBet().getCurrentMultiplier());
         statusPanel.updatePayout(game.getBet().getCurrentPayout());
 
@@ -129,13 +138,22 @@ public class MinesweeperUI extends JFrame {
             return;
         }
 
-        double fee = game.getBet().getHintFee();
-        if (game.getPlayer().getBalance() < fee) {
-            JOptionPane.showMessageDialog(this, "Insufficient balance for hint");
+        if (game.isHintUsed()) {
+            JOptionPane.showMessageDialog(this, "Você já usou uma dica nesta rodada.");
             return;
         }
 
-        game.getPlayer().loseBet(fee);
+        double fee = game.getBet().getHintFee();
+        double payout = game.getBet().getCurrentPayout();
+
+        if (fee >= payout) {
+            JOptionPane.showMessageDialog(this, "Insufficient payout for hint");
+            return;
+        }
+
+        game.getBet().applyHintFee();
+        game.setHintUsed(true); // já usou a dica
+        statusPanel.updatePayout(game.getBet().getCurrentPayout());
         statusPanel.updateBalance(game.getPlayer().getBalance());
         statusPanel.updateStatus(String.format("Hint used: -%.2f", fee));
 
@@ -199,20 +217,6 @@ public class MinesweeperUI extends JFrame {
         hintButton.setEnabled(false);
     }
 
-    private int countAdjacent(int r, int c) {
-        int cnt = 0;
-        Board b = game.getBoard();
-        for (int dr = -1; dr <= 1; dr++) {
-            for (int dc = -1; dc <= 1; dc++) {
-                int rr = r + dr, cc = c + dc;
-                if (rr >= 0 && rr < b.getRows() && cc >= 0 && cc < b.getCols()
-                    && b.getCell(rr, cc).hasMine()) {
-                    cnt++;
-                }
-            }
-        }
-        return cnt;
-    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MinesweeperUI::new);
