@@ -1,18 +1,17 @@
 package mc322_campo_minado;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * Representa o tabuleiro de jogo, com uma matriz de Cells e minas posicionadas aleatoriamente.
  */
 public class Board {
-    private int rows;                   // número de linhas
-    private int cols;                   // número de colunas
-    private int totalMines;             // quantidade total de minas
-    private Cell[][] cells;             // matriz de células
-    private ArrayList<Cell> mineList;   // lista de células que contêm minas
-    private Random random = new Random();
+    private int rows;                                      // número de linhas
+    private int cols;                                      // número de colunas
+    private int totalMines;                                // quantidade total de minas
+    private Cell[][] cells;                                // matriz de células
+    private ArrayList<Cell> mineList;                      // lista de células que contêm minas
+    private MineGenerationStrategy mineGenerationStrategy; // estratégia de geração de minas
 
     /**
      * Construtor: inicializa dimensões do tabuleiro, total de minas
@@ -35,27 +34,39 @@ public class Board {
                 cells[r][c] = new Cell();
             }
         }
+    
+        // Define a estratégia de geração de minas padrão (aleatória)
+        this.mineGenerationStrategy = new RandomMineGenerationStrategy();
     }
 
     /**
-     * Gera o tabuleiro, posicionando minas de forma aleatória nas células.
-     * Cada chamada limpa a lista anterior e redistribui as minas.
+     * Define a estratégia de geração de minas a ser usada.
+     * Deve ser chamada antes de gerar o tabuleiro.
+     * 
+     * Modo Padrão:
+     * Board board = new Board(10, 10, 20);
+     * board.generateBoard();
+     * 
+     * Modo Teste:
+     * Board board = new Board(5, 5, 3);
+     * board.setMineGenerationStrategy(
+     *    new FixedMineGenerationStrategy(new int[][]{{0,0},{2,3},{4,4}})
+     * );
+     * board.generateBoard();
+     *
+     * @param strategy objeto que implementa a interface MineGenerationStrategy
+     */
+    public void setMineGenerationStrategy(MineGenerationStrategy strategy) {
+        this.mineGenerationStrategy = strategy;
+    }
+
+    /**
+     * Gera o tabuleiro de jogo, limpando a lista de minas e chamando a estratégia
+     * de geração de minas para posicionar as minas.
      */
     public void generateBoard() {
         mineList.clear();
-        int minesLeft = totalMines;
-
-        while (minesLeft > 0) {
-            int r = random.nextInt(rows);
-            int c = random.nextInt(cols);
-            Cell cell = cells[r][c];
-
-            if (!cell.hasMine()) {
-                cell.setMine(true);
-                mineList.add(cell);
-                minesLeft--;
-            }
-        }
+        mineGenerationStrategy.generateMines(this);
     }
 
     /**
