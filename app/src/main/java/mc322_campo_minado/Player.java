@@ -1,10 +1,15 @@
 package mc322_campo_minado;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Representa o jogador, mantendo e gerenciando seu saldo para apostas.
  */
 public class Player {
     private double balance;  // saldo disponível do jogador
+    private final List<Observer> observers = new ArrayList<>();
+
 
     /**
      * Construtor: inicializa o jogador com um saldo inicial.
@@ -32,6 +37,7 @@ public class Player {
         if (amount > balance) {
             throw new IllegalArgumentException("Saldo insuficiente para realizar a aposta");
         }
+        // Não deduzimos aqui: o valor será deduzido em loseBet() se perder.
     }
 
     /**
@@ -48,6 +54,7 @@ public class Player {
         } else {
             balance -= amount;
         }
+        notifyObservers();
     }
 
     /**
@@ -60,6 +67,7 @@ public class Player {
             throw new IllegalArgumentException("Valor de ganhos não pode ser negativo");
         }
         balance += amount;
+        notifyObservers();
     }
 
     /**
@@ -82,5 +90,20 @@ public class Player {
             throw new IllegalArgumentException("Saldo não pode ser negativo");
         }
         this.balance = newBalance;
+        notifyObservers();
+    }
+
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    public void notifyObservers() {
+        for (Observer o : observers) {
+            o.update();
+        }
     }
 }
