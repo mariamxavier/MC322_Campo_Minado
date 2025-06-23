@@ -9,7 +9,7 @@ public class App {
      * @return saudação
      */
     public String getGreeting() {
-        return "Hello Minesweeper Bet Game!";
+        return "Salve, Professor! Bem-vindo ao Minesweeper Bet Game!";
     }
 
     /**

@@ -40,9 +40,8 @@ public class CellButton extends JButton implements Observer {
             g2.fillRect(0, 0, w, h);
             g2.dispose();
 
-            gemIcon = new ImageIcon(tintGem);
-            // Ícone de mina e explosão mantêm originais
-            mineIcon = new ImageIcon(ImageIO.read(cl.getResourceAsStream("assets/mine.png")));
+            gemIcon       = new ImageIcon(tintGem);
+            mineIcon      = new ImageIcon(ImageIO.read(cl.getResourceAsStream("assets/mine.png")));
             explosionAnim = new ImageIcon(ImageIO.read(cl.getResourceAsStream("assets/explosion.png")));
         } catch (Exception e) {
             System.err.println("Erro ao carregar ícones de CellButton:");
