@@ -5,11 +5,12 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
- * Painel de configuração inicial:
- * - Tamanho do tabuleiro (quadrado)
- * - Quantidade de minas
- * - Valor da aposta
- * Contém o botão "Start" para iniciar o jogo.
+ * Painel de configuração inicial do jogo Campo Minado.
+ * Permite ao usuário definir:
+ *   -Tamanho do tabuleiro (N x N)
+ *   -Quantidade de minas
+ *   -Valor da aposta
+ * Contém o botão "Start" para iniciar o jogo com as configurações escolhidas.
  */
 public class SetupPanel extends JPanel {
     private JTextField sizeField;    // campo para inserir o tamanho N (tabuleiro N x N)
@@ -43,21 +44,30 @@ public class SetupPanel extends JPanel {
     }
 
     /**
+     * Retorna o tamanho do tabuleiro informado pelo usuário.
+     *
      * @return o tamanho do tabuleiro (N)
+     * @throws NumberFormatException se o valor não for um número válido
      */
     public int getBoardSize() {
         return Integer.parseInt(sizeField.getText());
     }
 
     /**
+     * Retorna o número de minas informado pelo usuário.
+     *
      * @return o número de minas configurado
+     * @throws NumberFormatException se o valor não for um número válido
      */
     public int getMineCount() {
         return Integer.parseInt(mineField.getText());
     }
 
     /**
+     * Retorna o valor da aposta informado pelo usuário.
+     *
      * @return o valor da aposta inserido
+     * @throws NumberFormatException se o valor não for um número válido
      */
     public double getBetAmount() {
         return Double.parseDouble(betField.getText());

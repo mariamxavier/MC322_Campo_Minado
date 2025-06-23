@@ -1,24 +1,29 @@
 package mc322_campo_minado;
 
 import javax.swing.*;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 /**
  * Um JButton customizado para representar cada célula do tabuleiro
- * com tema dark, hover e troca de ícones (gema, mina, bandeira, explosão).
+ * com tema dark, hover e troca de ícones (diamante, mina, bandeira, explosão).
  * Usa apenas um tipo de gema (gemMedium) e mantém o background neutro,
  * pois a cor da gema vem diretamente da imagem do ícone.
  */
 public class CellButton extends JButton implements Observer {
     private static final Color BG_DEFAULT = Color.decode("#1E2230");
-    private static final Color BG_HOVER   = Color.decode("#2A2E40");
     private static final Color BG_MINE    = Color.decode("#B71C1C"); // mina/explosão
 
-    private static Icon gemIcon;
-    private static Icon mineIcon;
-    private static Icon flagIcon;
-    private static Icon explosionAnim;
+    private static ImageIcon gemIcon;
+    private static ImageIcon mineIcon;
+    private static ImageIcon explosionAnim;
+
+    /** Ícone base atual (antes do resize), usado para redimensionamento dinâmico */
+    private ImageIcon currentBaseIcon = null;
+
 
     private Cell cell;
 
@@ -31,16 +36,13 @@ public class CellButton extends JButton implements Observer {
             mineIcon     = new ImageIcon(ImageIO.read(
                 CellButton.class.getClassLoader().getResourceAsStream("assets/mine.png")
             ));
-            flagIcon     = new ImageIcon(ImageIO.read(
-                CellButton.class.getClassLoader().getResourceAsStream("assets/flag.png")
-            ));
             explosionAnim= new ImageIcon(ImageIO.read(
                 CellButton.class.getClassLoader().getResourceAsStream("assets/explosion.png")
             ));
         } catch (Exception e) {
             System.err.println("Erro ao carregar ícones de CellButton:");
             e.printStackTrace();
-            gemIcon = mineIcon = flagIcon = explosionAnim = null;
+            gemIcon = mineIcon = explosionAnim = null;
         }
     }
 
@@ -51,8 +53,10 @@ public class CellButton extends JButton implements Observer {
         setFocusPainted(false);
         setOpaque(true);
         setIcon(null);
+        setHorizontalAlignment(SwingConstants.CENTER);
+        setVerticalAlignment(SwingConstants.CENTER);
 
-        // Efeito hover
+        /* Efeito hover
         addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
@@ -62,7 +66,31 @@ public class CellButton extends JButton implements Observer {
             public void mouseExited(java.awt.event.MouseEvent e) {
                 setBackground(BG_DEFAULT);
             }
+        }); */
+
+        // Listener para redimensionar o ícone conforme o tamanho do botão
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (currentBaseIcon != null) {
+                    int size = Math.min(getWidth(), getHeight());
+                    setIcon(resizeIcon(currentBaseIcon, size));
+                }
+            }
         });
+    }
+
+    /**
+     * Redimensiona o ícone para manter o formato quadrado centralizado no botão.
+     * 
+     * @param icon Ícone original
+     * @param size Tamanho desejado (largura/altura)
+     * @return Ícone redimensionado
+     */
+    private Icon resizeIcon(ImageIcon icon, int size) {
+        Image img = icon.getImage();
+        Image resized = img.getScaledInstance(size, size, Image.SCALE_SMOOTH);
+        return new ImageIcon(resized);
     }
 
     // Novo construtor com Cell
@@ -76,23 +104,30 @@ public class CellButton extends JButton implements Observer {
      * Exibe o ícone de gema (único tipo) para casas seguras.
      */
     public void showGem() {
-        setIcon(gemIcon);
+        if (gemIcon != null) {
+            currentBaseIcon = gemIcon;
+            int size = Math.min(getWidth(), getHeight());
+            setIcon(resizeIcon(gemIcon, size));
+        }
     }
 
     /** Exibe o ícone de mina e background de alerta. */
     public void showMine() {
-        setIcon(mineIcon);
+        if (mineIcon != null) {
+            currentBaseIcon = mineIcon;
+            int size = Math.min(getWidth(), getHeight());
+            setIcon(resizeIcon(mineIcon, size));
+        }
         setBackground(BG_MINE);
-    }
-
-    /** Exibe o ícone de bandeira. */
-    public void showFlag() {
-        setIcon(flagIcon);
     }
 
     /** Exibe animação de explosão sobre a célula. */
     public void showExplosion() {
-        setIcon(explosionAnim);
+        if (explosionAnim != null) {
+            currentBaseIcon = explosionAnim;
+            int size = Math.min(getWidth(), getHeight());
+            setIcon(resizeIcon(explosionAnim, size));
+        }
         setBackground(BG_MINE);
     }
 

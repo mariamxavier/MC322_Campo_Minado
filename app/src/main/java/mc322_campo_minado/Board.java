@@ -119,7 +119,7 @@ public class Board {
     /**
      * Retorna o número de linhas do tabuleiro.
      *
-     * @return rows
+     * @return número de linhas(rows)
      */
     public int getRows() {
         return rows;
@@ -128,7 +128,7 @@ public class Board {
     /**
      * Retorna o número de colunas do tabuleiro.
      *
-     * @return cols
+     * @return número de colunas(cols)
      */
     public int getCols() {
         return cols;
