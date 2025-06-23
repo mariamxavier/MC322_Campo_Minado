@@ -1,15 +1,18 @@
 package mc322_campo_minado;
 
 /**
- * Representa o jogador, mantendo e gerenciando seu saldo para apostas.
+ * Classe que representa o jogador do Campo Minado.
+ * Responsável por gerenciar o saldo do jogador e as operações de aposta, perda e ganho.
  */
 public class Player {
-    private double balance;  // saldo disponível do jogador
+    /** Saldo disponível do jogador para apostas */
+    private double balance;
 
     /**
      * Construtor: inicializa o jogador com um saldo inicial.
      *
      * @param initialBalance valor inicial de crédito do jogador
+     * @throws IllegalArgumentException se o saldo inicial for negativo
      */
     public Player(double initialBalance) {
         if (initialBalance < 0) {
@@ -19,11 +22,11 @@ public class Player {
     }
 
     /**
-     * Valida uma aposta sem deduzir imediatamente do saldo.
+     * Valida uma aposta, sem deduzir imediatamente do saldo.
      * A dedução ocorre apenas se o jogador perder.
      *
      * @param amount valor apostado
-     * @throws IllegalArgumentException se amount for inválido ou maior que o saldo
+     * @throws IllegalArgumentException se o valor for inválido ou maior que o saldo disponível
      */
     public void placeBet(double amount) {
         if (amount <= 0) {
@@ -32,13 +35,14 @@ public class Player {
         if (amount > balance) {
             throw new IllegalArgumentException("Saldo insuficiente para realizar a aposta");
         }
-        // Não deduzimos aqui: o valor será deduzido em loseBet() se perder.
+        // A dedução do saldo ocorre apenas em loseBet().
     }
 
     /**
-     * Trata a perda da aposta, deduzindo o valor do saldo.
+     * Deduz o valor da aposta do saldo do jogador em caso de perda.
      *
-     * @param amount valor que foi perdido (igual ao valor apostado)
+     * @param amount valor perdido (igual ao valor apostado)
+     * @throws IllegalArgumentException se o valor de perda for negativo
      */
     public void loseBet(double amount) {
         if (amount < 0) {
@@ -52,9 +56,10 @@ public class Player {
     }
 
     /**
-     * Adiciona os ganhos ao saldo do jogador após um saque.
+     * Adiciona os ganhos ao saldo do jogador após um saque (cash out).
      *
      * @param amount valor ganho a ser adicionado ao saldo
+     * @throws IllegalArgumentException se o valor de ganhos for negativo
      */
     public void addWinnings(double amount) {
         if (amount < 0) {
@@ -77,6 +82,7 @@ public class Player {
      * Útil para cenários de recarga ou ajustes administrativos.
      *
      * @param newBalance novo valor de saldo
+     * @throws IllegalArgumentException se o novo saldo for negativo
      */
     public void setBalance(double newBalance) {
         if (newBalance < 0) {

@@ -1,152 +1,174 @@
 package mc322_campo_minado;
 
+import mc322_campo_minado.patterns.StatusObserver;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Gerencia o fluxo do jogo, orquestrando Board, Player e Bet.
+ * Classe responsável por gerenciar o fluxo do jogo Campo Minado.
+ * Orquestra as interações entre o tabuleiro (Board), o jogador (Player) e a aposta (Bet).
+ * Também controla o estado do jogo, uso de dicas e notificação de observadores.
  */
 public class Game {
-    private final Board board;        // tabuleiro do jogo
-    private final Player player;      // jogador com saldo para apostas
-    private Bet bet;                  // aposta atual da rodada
-    private boolean isGameOver;       // flag indicando fim de rodada
-    private boolean hintUsed;         // flag indicando se dica paga foi usada
-    private int safeCellsRevealed;    // contador de jogadas seguras
+    /** Tabuleiro do jogo */
+    private final Board board;
+    /** Jogador da partida */
+    private final Player player;
+    /** Aposta atual */
+    private Bet bet;
+    /** Indica se o jogo terminou */
+    private boolean isGameOver;
+    /** Indica se a dica já foi usada nesta rodada */
+    private boolean hintUsed;
+    /** Quantidade de células seguras reveladas */
+    private int safeCellsRevealed;
 
+    /** Lista de observadores para atualização de status */
+    private final List<StatusObserver> observers = new ArrayList<>();
 
     /**
-     * Construtor: inicializa jogo com dimensões e número de minas.
+     * Construtor do jogo.
+     * Inicializa o tabuleiro, jogador e estado inicial.
      *
-     * @param rows      número de linhas
-     * @param cols      número de colunas
-     * @param mineCount quantidade de minas
+     * @param rows      Número de linhas do tabuleiro
+     * @param cols      Número de colunas do tabuleiro
+     * @param mineCount Número de minas no tabuleiro
      */
     public Game(int rows, int cols, int mineCount) {
         this.board = new Board(rows, cols, mineCount);
-        this.player = new Player(1000.0);  // define saldo inicial padrão
+        this.player = new Player(1000.0);
         this.isGameOver = false;
         this.hintUsed = false;
-        this.safeCellsRevealed = 0; // inicia contador de células seguras reveladas
+        this.safeCellsRevealed = 0;
     }
 
     /**
-     * Inicia uma nova rodada de jogo com o valor de aposta informado.
-     * A chamada a placeBet valida se o jogador tem saldo suficiente,
-     * mas não deduz nada de imediato. A dedução ocorre em caso de perda.
+     * Adiciona um observador para ser notificado sobre mudanças de status do jogo.
      *
-     * @param betAmount valor apostado pelo jogador
-     * @throws IllegalArgumentException se valor de aposta for inválido
+     * @param obs Observador a ser adicionado
+     */
+    public void addObserver(StatusObserver obs) {
+        observers.add(obs);
+    }
+
+    /**
+     * Notifica todos os observadores registrados sobre uma mudança de status.
+     */
+    private void notifyObservers() {
+        for (StatusObserver obs : observers) {
+            obs.onStatusChanged();
+        }
+    }
+
+    /**
+     * Inicia uma nova rodada, realizando a aposta e gerando o tabuleiro.
+     *
+     * @param betAmount Valor da aposta
      */
     public void startGame(double betAmount) {
-        // valida a aposta (confirma saldo suficiente)
         player.placeBet(betAmount);
-
-        // deduz o valor da aposta do saldo do jogador
         player.loseBet(betAmount);
 
-        // gera novo tabuleiro com minas
         board.generateBoard();
-        // inicializa o objeto Bet para controlar multiplicador e payout
         this.bet = new Bet(betAmount);
-        // reseta a flag de fim de jogo
         this.isGameOver = false;
+        this.hintUsed = false;
+        this.safeCellsRevealed = 0;
+
+        notifyObservers();
     }
 
     /**
-     * Revela uma célula no tabuleiro e atualiza estado do jogo.
+     * Revela uma célula do tabuleiro.
+     * Atualiza o estado do jogo conforme o resultado (mina ou célula segura).
      *
-     * @param r índice da linha da célula
-     * @param c índice da coluna da célula
-     * @return true se a célula não for mina (continua jogando),
-     *         false se for mina (roda terminará)
+     * @param r Linha da célula
+     * @param c Coluna da célula
+     * @return true se a célula era segura, false se era uma mina
      */
     public boolean revealCell(int r, int c) {
         Cell cell = board.getCell(r, c);
 
-        // ignora cliques em células já reveladas ou após fim de jogo
+        // Ignora se a célula já foi revelada ou se o jogo acabou
         if (cell.isRevealed() || isGameOver) {
             return true;
         }
 
-        // marca a célula como revelada
         cell.reveal();
 
+        // Se for mina, encerra o jogo
         if (cell.hasMine()) {
-            //player.loseBet(bet.getInitialBet());
-            // ao clicar em mina, deduz a aposta do saldo e encerra
             isGameOver = true;
+            notifyObservers();
             return false;
         }
 
-         // Incrementa o número de células seguras reveladas
+        // Se for célula segura, atualiza contagem e multiplica aposta
         safeCellsRevealed++;
-
-        // célula segura: atualiza multiplicador
         int safeCells = board.getRemainingSafeCells();
         bet.increaseMultiplier(safeCells, board.getRemainingMines());
 
-        // se nenhuma célula segura restante, o jogador venceu
+        // Se não restam células seguras, o jogador venceu
         if (safeCells == 0) {
             isGameOver = true;
         }
 
+        notifyObservers();
         return true;
     }
 
     /**
-     * Retorna o número de células seguras reveladas nesta rodada.
-     * Incrementa a cada revelação de célula segura.
+     * Realiza o cash out, encerrando a rodada e creditando o prêmio ao jogador.
      *
-     * @return número de células seguras reveladas
-     */
-    public int getSafeCellsRevealed() {
-        return safeCellsRevealed;
-    }
-
-
-    /**
-     * Permite ao jogador sacar os ganhos atuais e encerra a rodada.
-     *
-     * @return valor sacado (initialBet × currentMultiplier)
+     * @return Valor do prêmio recebido
      */
     public double cashOut() {
         double payout = bet.getCurrentPayout();
-        // adiciona o valor ganho (incluindo stake) ao saldo
         player.addWinnings(payout);
         isGameOver = true;
+        notifyObservers();
         return payout;
     }
 
     /**
-     * Verifica se a rodada/jogo terminou (por mina ou vitória).
+     * Verifica se o jogo já terminou.
      *
-     * @return true se terminou, false caso contrário
+     * @return true se o jogo acabou, false caso contrário
      */
     public boolean checkGameOver() {
         return isGameOver;
     }
 
     /**
-     * @return objeto Player para consulta de saldo
+     * Retorna o jogador da partida.
+     *
+     * @return Instância de Player
      */
     public Player getPlayer() {
         return player;
     }
 
     /**
-     * @return objeto Bet para consulta de multiplicador e payout
+     * Retorna a aposta atual.
+     *
+     * @return Instância de Bet
      */
     public Bet getBet() {
         return bet;
     }
 
     /**
-     * @return objeto Board para consulta do tabuleiro
+     * Retorna o tabuleiro do jogo.
+     *
+     * @return Instância de Board
      */
     public Board getBoard() {
         return board;
     }
 
     /**
-     * Verifica se uma dica paga foi usada nesta rodada.
+     * Indica se a dica já foi utilizada nesta rodada.
      *
      * @return true se a dica foi usada, false caso contrário
      */
@@ -155,12 +177,21 @@ public class Game {
     }
 
     /**
-     * Define se uma dica paga foi usada nesta rodada.
+     * Define o uso da dica nesta rodada.
      *
-     * @param used true se a dica foi usada, false caso contrário
+     * @param used true para marcar como usada, false caso contrário
      */
     public void setHintUsed(boolean used) {
         this.hintUsed = used;
+        notifyObservers();
     }
 
+    /**
+     * Retorna a quantidade de células seguras já reveladas.
+     *
+     * @return Número de células seguras reveladas
+     */
+    public int getSafeCellsRevealed() {
+        return safeCellsRevealed;
+    }
 }

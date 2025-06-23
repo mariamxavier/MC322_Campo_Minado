@@ -1,88 +1,122 @@
 package mc322_campo_minado;
 
+import mc322_campo_minado.patterns.HintFeeStrategy;
+import mc322_campo_minado.patterns.MultiplierStrategy;
+import mc322_campo_minado.patterns.DefaultHintFeeStrategy;
+import mc322_campo_minado.patterns.DefaultMultiplierStrategy;
+
 /**
- * Representa uma aposta genérica, armazenando o valor inicial
- * e um multiplicador que cresce conforme o jogador revela células seguras.
- * Inclui método para cálculo de taxa de dica (hint).
+ * Classe que representa uma aposta no jogo Campo Minado.
+ * Gerencia o valor inicial da aposta, o multiplicador atual,
+ * estratégias para cálculo do multiplicador e taxa de dica.
  */
 public class Bet {
-    private double initialBet;        // valor apostado inicialmente
-    private double currentMultiplier; // multiplicador atual de payout
+    /** Valor inicial apostado pelo jogador */
+    private final double initialBet;
+    /** Multiplicador atual da aposta */
+    private double currentMultiplier;
+
+    /** Estratégia para cálculo do multiplicador */
+    private MultiplierStrategy multiplierStrategy;
+    /** Estratégia para cálculo da taxa de dica */
+    private HintFeeStrategy hintFeeStrategy;
 
     /**
-     * Construtor: define o valor inicial da aposta e inicializa multiplicador em 0.5x.
-     *
-     * @param initialBet valor apostado
+     * Construtor da aposta.
+     * 
+     * @param initialBet Valor inicial da aposta
+     * @throws IllegalArgumentException se o valor da aposta for menor ou igual a zero
      */
     public Bet(double initialBet) {
         if (initialBet <= 0) {
             throw new IllegalArgumentException("Valor de aposta deve ser maior que zero");
         }
         this.initialBet = initialBet;
-        this.currentMultiplier = 0.4;  
+        this.currentMultiplier = 0.4;
+        this.multiplierStrategy = new DefaultMultiplierStrategy();
+        this.hintFeeStrategy = new DefaultHintFeeStrategy();
     }
 
     /**
-     * Aumenta o multiplicador com base no número de casas seguras restantes
-     * e no número de minas não reveladas.
-     * Aplica a fórmula:
-     *   multiplicadorNovo = multiplicadorAtual * (casasRestantes + minasRestantes) / casasRestantes
-     * onde (casasRestantes + minasRestantes) é o total de células não reveladas.
-     *
-     * @param safeCells      número de casas sem mina ainda não reveladas
-     * @param remainingMines número de minas ainda não reveladas
+     * Atualiza o multiplicador da aposta com base nas células seguras reveladas e minas restantes.
+     * 
+     * @param safeCells       Número de células seguras reveladas
+     * @param remainingMines  Número de minas restantes no tabuleiro
      */
     public void increaseMultiplier(int safeCells, int remainingMines) {
-        if (safeCells <= 0) {
-            return; // nada a multiplicar se não restam casas seguras
-        }
-        int totalUnknown = safeCells + remainingMines;
-        double factor = (double) totalUnknown / safeCells;
-        this.currentMultiplier *= factor;
+        this.currentMultiplier = multiplierStrategy.calculate(currentMultiplier, safeCells, remainingMines);
     }
 
     /**
-     * Retorna o valor total que seria recebido ao sacar:
-     * initialBet * currentMultiplier.
-     *
-     * @return valor de payout atual
+     * Retorna o valor atual do possível pagamento (payout) da aposta.
+     * 
+     * @return Valor do payout atual
      */
     public double getCurrentPayout() {
         return initialBet * currentMultiplier;
     }
 
     /**
-     * Retorna o valor originalmente apostado.
-     *
-     * @return aposta inicial
+     * Retorna o valor da taxa para uso da dica, calculada sobre o payout atual.
+     * 
+     * @return Valor da taxa de dica
+     */
+    public double getHintFee() {
+        return hintFeeStrategy.calculate(getCurrentPayout());
+    }
+
+    /**
+     * Retorna o valor inicial da aposta.
+     * 
+     * @return Valor inicial apostado
      */
     public double getInitialBet() {
         return initialBet;
     }
 
     /**
-     * Retorna o multiplicador atual.
-     *
-     * @return multiplicador acumulado
+     * Retorna o multiplicador atual da aposta.
+     * 
+     * @return Multiplicador atual
      */
     public double getCurrentMultiplier() {
         return currentMultiplier;
     }
 
     /**
-     * Calcula a taxa para uso de dica (hint).
-     * A taxa é 10% do payout atual (initialBet * currentMultiplier).
-     *
-     * @return valor da taxa de hint
+     * Reseta o multiplicador para o valor inicial padrão (0.4).
      */
-    public double getHintFee() {
-        return getCurrentPayout() * 0.25; // taxa de 25% do payout atual
+    public void resetMultiplier() {
+        this.currentMultiplier = 0.4;
     }
 
     /**
-     * Redefine o multiplicador para 0.5x (útil para reiniciar entre rodadas).
+     * Define uma nova estratégia para cálculo do multiplicador.
+     * 
+     * @param strategy Nova estratégia de multiplicador
      */
-    public void resetMultiplier() {
-        this.currentMultiplier = 0.4;  
+    public void setMultiplierStrategy(MultiplierStrategy strategy) {
+        this.multiplierStrategy = strategy;
+    }
+
+    /**
+     * Define uma nova estratégia para cálculo da taxa de dica.
+     * 
+     * @param strategy Nova estratégia de taxa de dica
+     */
+    public void setHintFeeStrategy(HintFeeStrategy strategy) {
+        this.hintFeeStrategy = strategy;
+    }
+
+    /**
+     * Aplica a taxa de dica (hint fee) ao payout atual.
+     * Deduz 25% do payout atual (initialBet * currentMultiplier) como taxa de dica.
+     */
+    public void applyHintFee() {
+        double fee = getHintFee();
+        double payout = getCurrentPayout();
+
+        double newPayout = payout - fee;
+        this.currentMultiplier = newPayout / initialBet;
     }
 }

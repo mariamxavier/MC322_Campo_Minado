@@ -6,26 +6,35 @@ import java.awt.event.*;
 import javax.imageio.ImageIO;
 
 /**
- * Um JButton customizado para representar cada célula do tabuleiro
- * com tema dark, hover e troca de ícones (gema, mina, bandeira, explosão).
- * Usa apenas um tipo de gema (gemMedium) e mantém o background neutro,
- * pois a cor da gema vem diretamente da imagem do ícone.
+ * JButton customizado que representa uma célula do tabuleiro do Campo Minado.
+ * 
+ * Este botão possui tema escuro, efeito de hover e pode exibir diferentes ícones
+ * (gema, mina, bandeira, explosão) de acordo com o estado da célula.
+ * O background é neutro, pois a cor da gema é definida pela imagem do ícone.
+ * 
+ * Os ícones são carregados uma única vez por meio do ClassLoader.
  */
 public class CellButton extends JButton {
+    /** Cor padrão do fundo da célula */
     private static final Color BG_DEFAULT = Color.decode("#1E2230");
+    /** Cor de fundo ao passar o mouse (hover) */
     private static final Color BG_HOVER   = Color.decode("#2A2E40");
-    private static final Color BG_MINE    = Color.decode("#B71C1C"); // mina/explosão
+    /** Cor de fundo para mina/explosão */
+    private static final Color BG_MINE    = Color.decode("#B71C1C");
 
+    // Ícones estáticos compartilhados entre todas as instâncias
     private static ImageIcon gemIcon;
     private static ImageIcon mineIcon;
     private static ImageIcon flagIcon;
     private static ImageIcon explosionAnim;
 
-    private ImageIcon currentBaseIcon = null;  // ícone atual, antes do resize
+    /** Ícone base atual (antes do resize), usado para redimensionamento dinâmico */
+    private ImageIcon currentBaseIcon = null;
 
+    // Bloco estático para carregar os ícones apenas uma vez
     static {
         try {
-            // Carrega ícones via ClassLoader
+            // Carrega ícones dos recursos do projeto
             gemIcon = new ImageIcon(ImageIO.read(
                 CellButton.class.getClassLoader().getResourceAsStream("assets/gem_medium.png")
             ));
@@ -45,6 +54,9 @@ public class CellButton extends JButton {
         }
     }
 
+    /**
+     * Construtor padrão. Inicializa o botão com tema escuro e listeners de hover e resize.
+     */
     public CellButton() {
         super();
         setBackground(BG_DEFAULT);
@@ -55,7 +67,7 @@ public class CellButton extends JButton {
         setHorizontalAlignment(SwingConstants.CENTER);
         setVerticalAlignment(SwingConstants.CENTER);
 
-        // Redimensiona o ícone conforme o tamanho da célula
+        // Listener para redimensionar o ícone conforme o tamanho do botão
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -66,7 +78,7 @@ public class CellButton extends JButton {
             }
         });
 
-        // Efeito hover
+        // Listener para efeito de hover (mudança de cor ao passar o mouse)
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -80,14 +92,22 @@ public class CellButton extends JButton {
         });
     }
 
-    /** Redimensiona o ícone para manter formato quadrado centralizado */
+    /**
+     * Redimensiona o ícone para manter o formato quadrado centralizado no botão.
+     * 
+     * @param icon Ícone original
+     * @param size Tamanho desejado (largura/altura)
+     * @return Ícone redimensionado
+     */
     private Icon resizeIcon(ImageIcon icon, int size) {
         Image img = icon.getImage();
         Image resized = img.getScaledInstance(size, size, Image.SCALE_SMOOTH);
         return new ImageIcon(resized);
     }
 
-    /** Exibe o ícone de gema (unico tipo) para casas seguras. */
+    /**
+     * Exibe o ícone de gema (para casas seguras).
+     */
     public void showGem() {
         if (gemIcon != null) {
             currentBaseIcon = gemIcon;
@@ -96,7 +116,9 @@ public class CellButton extends JButton {
         }
     }
 
-    /** Exibe o ícone de mina e background de alerta.*/
+    /**
+     * Exibe o ícone de mina e altera o fundo para cor de alerta.
+     */
     public void showMine() {
         if (mineIcon != null) {
             currentBaseIcon = mineIcon;
@@ -106,7 +128,9 @@ public class CellButton extends JButton {
         setBackground(BG_MINE);
     }
 
-    /** Exibe o ícone de bandeira*/
+    /**
+     * Exibe o ícone de bandeira (usado para marcar possíveis minas).
+     */
     public void showFlag() {
         if (flagIcon != null) {
             currentBaseIcon = flagIcon;
@@ -115,7 +139,9 @@ public class CellButton extends JButton {
         }
     }
 
-    /** Exibe animação de explosão sobre a célula. */
+    /**
+     * Exibe a animação de explosão sobre a célula e altera o fundo.
+     */
     public void showExplosion() {
         if (explosionAnim != null) {
             currentBaseIcon = explosionAnim;
@@ -125,7 +151,9 @@ public class CellButton extends JButton {
         setBackground(BG_MINE);
     }
 
-    /** Restaura o estado visual original (antes de qualquer reveal)*/
+    /**
+     * Restaura o estado visual original do botão (sem ícone, fundo padrão e habilitado).
+     */
     public void reset() {
         setIcon(null);
         currentBaseIcon = null;
