@@ -36,10 +36,8 @@ public class Game {
      * @throws IllegalArgumentException se valor de aposta for inválido
      */
     public void startGame(double betAmount) {
-        // valida a aposta (confirma saldo suficiente)
+        // valida se o valor da aposta é positivo e se o jogador tem saldo suficiente
         player.placeBet(betAmount);
-        // deduz o valor da aposta do saldo do jogadorAdd commentMore actions
-        player.loseBet(betAmount);
         // gera novo tabuleiro com minas
         board.generateBoard();
         // inicializa o objeto Bet para controlar multiplicador e payout
@@ -68,12 +66,11 @@ public class Game {
         cell.reveal();
 
         if (cell.hasMine()) {
-            // ao clicar em mina, deduz a aposta do saldo e encerra
+            // ao clicar em mina, encerra o jogo
             isGameOver = true;
             return false;
         }
 
-         // Incrementa o número de células seguras reveladas
         safeCellsRevealed++;
 
         // célula segura: atualiza multiplicador
@@ -89,31 +86,20 @@ public class Game {
     }
 
     /**
-     * Retorna o número de células seguras reveladas nesta rodada.
-     * Incrementa a cada revelação de célula segura.
-     *
-     * @return número de células seguras reveladas
-     */
-    public int getSafeCellsRevealed() {
-        return safeCellsRevealed;
-    }
-
-
-    /**
      * Permite ao jogador sacar os ganhos atuais e encerra a rodada.
      *
      * @return valor sacado (initialBet × currentMultiplier)
      */
     public double cashOut() {
         double payout = bet.getCurrentPayout();
-        // adiciona o valor ganho (incluindo stake) ao saldo
+        // adiciona o valor ganho ao saldo
         player.addWinnings(payout);
         isGameOver = true;
         return payout;
     }
 
     /**
-     * Verifica se a rodada/jogo terminou (por mina ou vitória).
+     * Verifica se a rodada/jogo terminou 
      *
      * @return true se terminou, false caso contrário
      */
@@ -121,26 +107,6 @@ public class Game {
         return isGameOver;
     }
 
-    /**
-     * @return objeto Player para consulta de saldo
-     */
-    public Player getPlayer() {
-        return player;
-    }
-
-    /**
-     * @return objeto Bet para consulta de multiplicador e payout
-     */
-    public Bet getBet() {
-        return bet;
-    }
-
-    /**
-     * @return objeto Board para consulta do tabuleiro
-     */
-    public Board getBoard() {
-        return board;
-    }
 
     /**
      * Verifica se uma dica paga foi usada nesta rodada.
@@ -158,6 +124,37 @@ public class Game {
      */
     public void setHintUsed(boolean used) {
         this.hintUsed = used;
+    }
+
+    /**
+     * Retorna o número de células seguras reveladas nesta rodada.
+     * Incrementa a cada revelação de célula segura.
+     *
+     * @return número de células seguras reveladas
+     */
+    public int getSafeCellsRevealed() {
+        return safeCellsRevealed;
+    }
+
+    /**
+     * @return objeto Player para consulta de saldo
+     */
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
+     * @return objeto Bet 
+     */
+    public Bet getBet() {
+        return bet;
+    }
+
+    /**
+     * @return objeto Board 
+     */
+    public Board getBoard() {
+        return board;
     }
 
 }

@@ -10,7 +10,7 @@ public class Bet {
     private double currentMultiplier; // multiplicador atual de payout
 
     /**
-     * Construtor: define o valor inicial da aposta e inicializa multiplicador em 0.5x.
+     * Construtor: define o valor inicial da aposta e inicializa multiplicador em 0.4x.
      *
      * @param initialBet valor apostado
      */
@@ -54,6 +54,13 @@ public class Bet {
     }
 
     /**
+     * Redefine o multiplicador para 0.5x (útil para reiniciar entre rodadas).
+     */
+    public void resetMultiplier() {
+        this.currentMultiplier = 0.4;
+    }
+
+    /**
      * Retorna o valor total que seria recebido ao sacar:
      * initialBet * currentMultiplier.
      *
@@ -82,19 +89,11 @@ public class Bet {
     }
 
     /**
-     * Calcula a taxa para uso de dica (hint).
-     * A taxa é 25% do payout atual (initialBet * currentMultiplier).
+     * Calcula a taxa de dica (hint fee) como 25% do payout atual.
      *
      * @return valor da taxa de hint
      */
     public double getHintFee() {
         return getCurrentPayout() * 0.25;
-    }
-
-    /**
-     * Redefine o multiplicador para 0.5x (útil para reiniciar entre rodadas).
-     */
-    public void resetMultiplier() {
-        this.currentMultiplier = 0.4;
     }
 }
