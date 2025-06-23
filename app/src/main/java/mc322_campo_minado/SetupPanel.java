@@ -7,9 +7,9 @@ import java.awt.event.ActionListener;
 /**
  * Painel de configuração inicial do jogo Campo Minado.
  * Permite ao usuário definir:
- *   -Tamanho do tabuleiro (N x N)
- *   -Quantidade de minas
- *   -Valor da aposta
+ *   - Tamanho do tabuleiro (N x N)
+ *   - Quantidade de minas
+ *   - Valor da aposta
  * Contém o botão "Start" para iniciar o jogo com as configurações escolhidas.
  */
 public class SetupPanel extends JPanel {

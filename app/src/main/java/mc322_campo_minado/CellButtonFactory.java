@@ -1,6 +1,5 @@
 package mc322_campo_minado;
 
-import java.awt.event.ActionListener;
 
 /**
  * Factory Method para criar e configurar CellButton.

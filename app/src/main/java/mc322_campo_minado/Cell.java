@@ -4,70 +4,72 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Classe que representa cada célula do tabuleiro.
- * Contém informações sobre se a célula possui mina e se foi revelada.
+ * Representa uma célula do tabuleiro: pode conter mina e manter estado revelado.
+ * Notifica observadores quando seu estado muda.
  */
 public class Cell {
-    private boolean hasMine;    // indica presença de mina na célula
-    private boolean isRevealed; // indica se a célula já foi revelada
-    private List<Observer> observers = new ArrayList<>(); // lista de observadores para notificações
+    private boolean hasMine = false;    // indica se há mina nesta célula
+    private boolean isRevealed = false; // indica se a célula já foi revelada
+
+    private final List<Observer> observers = new ArrayList<>();
 
     /**
-     * Construtor: inicializa célula sem mina e não revelada.
+     * Marca esta célula como contendo mina.
+     * @param mine true para ter mina, false caso contrário
      */
-    public Cell() {
-        this.hasMine = false;
-        this.isRevealed = false;
+    public void setMine(boolean mine) {
+        this.hasMine = mine;
     }
 
     /**
-     * Define se a célula possui mina.
-     * @param hasMine true para adicionar mina, false para remover
-     */
-    public void setMine(boolean hasMine) {
-        this.hasMine = hasMine;
-    }
-
-    /**
-     * Retorna se a célula possui mina.
-     * @return true se houver mina, false caso contrário
+     * Retorna se a célula contém mina.
+     * @return true se há mina
      */
     public boolean hasMine() {
         return hasMine;
     }
 
     /**
-     * Marca a célula como revelada.
-     * Uma vez revelada, não pode ser revertida.
+     * Revela a célula, alterando seu estado e notificando observadores.
+     * Se já estiver revelada, não faz nada.
      */
     public void reveal() {
-        this.isRevealed = true;
-        notifyObservers(); // Notifica observadores sobre a revelação
+        if (!isRevealed) {
+            isRevealed = true;
+            notifyObservers();
+        }
     }
 
     /**
-     * Verifica se a célula já foi revelada.
-     * @return true se já revelada, false caso contrário
+     * Retorna se a célula já foi revelada.
+     * @return true se revelada
      */
     public boolean isRevealed() {
         return isRevealed;
     }
 
     /**
-     * Registra um observador para notificações sobre mudanças nesta célula.
-     * @param observer objeto que implementa a interface Observer
+     * Registra um observador para ser notificado quando o estado mudar.
+     * @param observer instância que implementa Observer
      */
     public void addObserver(Observer observer) {
         observers.add(observer);
     }
 
     /**
-     * Notifica todos os observadores sobre mudanças na célula.
-     * Chama o método update() em cada um dos observadores.
+     * Remove um observador do registro.
+     * @param observer instância previamente registrada
      */
-    public void notifyObservers() {
-        for (Observer observer : observers) {
-            observer.update();
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    /**
+     * Notifica todos os observadores sobre mudança de estado.
+     */
+    private void notifyObservers() {
+        for (Observer o : observers) {
+            o.update();
         }
     }
 }

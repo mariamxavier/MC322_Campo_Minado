@@ -3,7 +3,7 @@ package mc322_campo_minado;
 /**
  * Representa uma aposta genérica, armazenando o valor inicial
  * e um multiplicador que cresce conforme o jogador revela células seguras.
- * Inclui método para cálculo de taxa de dica (hint).
+ * Inclui método para cálculo de taxa de dica (hint) com 75% do payout.
  */
 public class Bet {
     private double initialBet;        // valor apostado inicialmente
@@ -19,15 +19,15 @@ public class Bet {
             throw new IllegalArgumentException("Valor de aposta deve ser maior que zero");
         }
         this.initialBet = initialBet;
-        this.currentMultiplier = 0.4;
+        this.currentMultiplier = 0.4;  // início em 0.4x para reduzir ganhos fáceis
     }
 
     /**
      * Aumenta o multiplicador com base no número de casas seguras restantes
-     * e no número de minas não reveladas.
-     * Aplica a fórmula:
-     *   multiplicadorNovo = multiplicadorAtual * (casasRestantes + minasRestantes) / casasRestantes
-     * onde (casasRestantes + minasRestantes) é o total de células não reveladas.
+     * e no número de minas não reveladas usando fórmula padrão.
+     *
+     * multiplicadorNovo = multiplicadorAtual * (totalUnknown / safeCells)
+     * onde totalUnknown = safeCells + remainingMines.
      *
      * @param safeCells      número de casas sem mina ainda não reveladas
      * @param remainingMines número de minas ainda não reveladas
@@ -43,26 +43,24 @@ public class Bet {
 
     /**
      * Aplica a taxa de dica (hint fee) ao payout atual.
-     * Deduz 25% do payout atual (initialBet * currentMultiplier) como taxa de dica.
+     * Deduz 75% do payout atual (initialBet * currentMultiplier) como taxa de dica.
      */
     public void applyHintFee() {
         double fee = getHintFee();
         double payout = getCurrentPayout();
-
         double newPayout = payout - fee;
         this.currentMultiplier = newPayout / initialBet;
     }
 
     /**
-     * Redefine o multiplicador para 0.5x (útil para reiniciar entre rodadas).
+     * Redefine o multiplicador para 0.4x (útil para reiniciar entre rodadas).
      */
     public void resetMultiplier() {
         this.currentMultiplier = 0.4;
     }
 
     /**
-     * Retorna o valor total que seria recebido ao sacar:
-     * initialBet * currentMultiplier.
+     * Retorna o valor total que seria recebido ao sacar: initialBet * currentMultiplier.
      *
      * @return valor de payout atual
      */
@@ -89,11 +87,11 @@ public class Bet {
     }
 
     /**
-     * Calcula a taxa de dica (hint fee) como 25% do payout atual.
+     * Calcula a taxa de dica (hint fee) como 75% do payout atual.
      *
      * @return valor da taxa de hint
      */
     public double getHintFee() {
-        return getCurrentPayout() * 0.25;
+        return getCurrentPayout() * 0.75;
     }
 }

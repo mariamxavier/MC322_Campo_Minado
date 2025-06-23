@@ -5,7 +5,8 @@ import java.awt.*;
 
 /**
  * Painel que renderiza o tabuleiro do jogo usando CellButton para cada célula.
- * Cria botões para cada célula e delega eventos de clique.
+ * Usa CellButtonFactory para criar e configurar os botões e expõe acesso ao array
+ * de botões para funcionalidades como hint.
  */
 public class BoardPanel extends JPanel {
     private CellButton[][] cellButtons; // matriz de botões que representam as células do tabuleiro
@@ -19,7 +20,7 @@ public class BoardPanel extends JPanel {
 
     /**
      * Monta o tabuleiro de acordo com o objeto Board fornecido.
-     * Cria um CellButton para cada célula e associa um listener de clique.
+     * Para cada célula, delega a criação ao CellButtonFactory.
      *
      * @param board    objeto Board com as células do jogo
      * @param listener callback chamado em cada clique, recebendo (row, col, button)
@@ -27,28 +28,23 @@ public class BoardPanel extends JPanel {
     public void buildBoard(Board board, CellClickListener listener) {
         int rows = board.getRows();
         int cols = board.getCols();
-        removeAll(); // Remove todos os componentes antigos do painel
+        removeAll(); // Remove componentes anteriores
+        setLayout(new GridLayout(rows, cols, 4, 4)); // grid com espaçamento
 
-        // Define o layout em grade com espaçamento entre as células
-        setLayout(new GridLayout(rows, cols, 4, 4));
-        cellButtons = new CellButton[rows][cols]; // inicializa matriz de botões
+        cellButtons = new CellButton[rows][cols];
 
-        // Cria os botões do tabuleiro
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                Cell cell = board.getCell(r, c);
-                CellButton btn = new CellButton(cell);
-                btn.reset(); // Garante que o botão está no estado inicial (sem ícone, habilitado)
-                cellButtons[r][c] = btn; // armazena referência do botão na matriz
-                final int rr = r, cc = c;
-                // Listener para capturar o clique e informar a posição e o botão
-                btn.addActionListener(e -> listener.onCellClick(rr, cc, btn));
-                add(btn); // Adiciona o botão ao painel
+                // Cria e configura o botão via fábrica
+                CellButton btn = CellButtonFactory.create(r, c, listener);
+                btn.reset();                 // garante estado inicial
+                cellButtons[r][c] = btn;     // armazena para acesso futuro
+                add(btn);                    // adiciona ao painel
             }
         }
 
-        revalidate(); // Atualiza o layout do painel após adicionar/remover componentes
-        repaint();    // Redesenha o painel
+        revalidate();
+        repaint();
     }
 
     /**
@@ -62,29 +58,12 @@ public class BoardPanel extends JPanel {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 CellButton btn = cellButtons[r][c];
-                // Se a célula contém mina, exibe o ícone de mina
                 if (board.getCell(r, c).hasMine()) {
                     btn.showMine();
                 }
-                // Desabilita todos os botões ao final do jogo
                 btn.setEnabled(false);
             }
         }
-    }
-
-    /**
-     * Interface para callback de clique em célula.
-     * Permite que o painel informe ao controlador qual célula foi clicada.
-     */
-    public interface CellClickListener {
-        /**
-         * Método chamado ao clicar em uma célula.
-         *
-         * @param row    Linha da célula clicada
-         * @param col    Coluna da célula clicada
-         * @param button Referência ao CellButton clicado
-         */
-        void onCellClick(int row, int col, CellButton button);
     }
 
     /**
@@ -94,5 +73,19 @@ public class BoardPanel extends JPanel {
      */
     public CellButton[][] getCellButtons() {
         return cellButtons;
+    }
+
+    /**
+     * Callback interface para tratar cliques em células do tabuleiro.
+     */
+    public interface CellClickListener {
+        /**
+         * Invocado quando o usuário clica em uma célula.
+         *
+         * @param row    linha da célula clicada
+         * @param col    coluna da célula clicada
+         * @param button instância de CellButton que recebeu o clique
+         */
+        void onCellClick(int row, int col, CellButton button);
     }
 }

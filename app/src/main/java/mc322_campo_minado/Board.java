@@ -1,95 +1,93 @@
 package mc322_campo_minado;
 
-import java.util.ArrayList;
 
 /**
- * Representa o tabuleiro de jogo, com uma matriz de Cells e minas posicionadas aleatoriamente.
+ * Representa o tabuleiro do jogo, contendo uma matriz de Cells,
+ * o número total de minas e a estratégia de posicionamento.
  */
 public class Board {
-    private int rows;                                      // número de linhas
-    private int cols;                                      // número de colunas
-    private int totalMines;                                // quantidade total de minas
-    private Cell[][] cells;                                // matriz de células
-    private ArrayList<Cell> mineList;                      // lista de células que contêm minas
-    private MineGenerationStrategy mineGenerationStrategy; // estratégia de geração de minas
+    private final int rows;                 // número de linhas
+    private final int cols;                 // número de colunas
+    private final int totalMines;           // quantidade de minas
+    private final Cell[][] cells;           // matriz de células
+    private final MineGenerationStrategy strategy; // estratégia de distribuição de minas
 
     /**
-     * Construtor: inicializa dimensões do tabuleiro, total de minas
-     * e cria todas as células não reveladas.
+     * Construtor padrão: usa RandomMineGenerationStrategy para posicionar minas.
      *
      * @param rows       número de linhas
      * @param cols       número de colunas
      * @param totalMines quantidade de minas
      */
     public Board(int rows, int cols, int totalMines) {
+        this(rows, cols, totalMines, new RandomMineGenerationStrategy());
+    }
+
+    /**
+     * Construtor que recebe uma estratégia de geração de minas.
+     *
+     * @param rows       número de linhas
+     * @param cols       número de colunas
+     * @param totalMines quantidade de minas
+     * @param strategy   implementação de MineGenerationStrategy
+     */
+    public Board(int rows, int cols, int totalMines, MineGenerationStrategy strategy) {
+        if (rows < 1 || cols < 1)
+            throw new IllegalArgumentException("Tabuleiro deve ter ao menos 1 linha e 1 coluna");
+        if (totalMines < 0 || totalMines >= rows * cols)
+            throw new IllegalArgumentException("Quantidade de minas inválida para o tamanho do tabuleiro");
+
         this.rows = rows;
         this.cols = cols;
         this.totalMines = totalMines;
-        this.cells = new Cell[rows][cols];
-        this.mineList = new ArrayList<>();
+        this.strategy = strategy;
 
-        // Inicializa todas as células sem minas e não reveladas
+        // inicializa todas as células
+        cells = new Cell[rows][cols];
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 cells[r][c] = new Cell();
             }
         }
-    
-        // Define a estratégia de geração de minas padrão (aleatória)
-        this.mineGenerationStrategy = new RandomMineGenerationStrategy();
     }
 
     /**
-     * Define a estratégia de geração de minas a ser usada.
-     * Deve ser chamada antes de gerar o tabuleiro.
-     * 
-     * Modo Padrão:
-     * Board board = new Board(10, 10, 20);
-     * board.generateBoard();
-     * 
-     * Modo Teste:
-     * Board board = new Board(5, 5, 3);
-     * board.setMineGenerationStrategy(
-     *    new FixedMineGenerationStrategy(new int[][]{{0,0},{2,3},{4,4}})
-     * );
-     * board.generateBoard();
-     *
-     * @param strategy objeto que implementa a interface MineGenerationStrategy
-     */
-    public void setMineGenerationStrategy(MineGenerationStrategy strategy) {
-        this.mineGenerationStrategy = strategy;
-    }
-
-    /**
-     * Gera o tabuleiro de jogo, limpando a lista de minas e chamando a estratégia
-     * de geração de minas para posicionar as minas.
+     * Gera o tabuleiro posicionando minas conforme a estratégia escolhida
+     * e reseta todas as células não reveladas.
      */
     public void generateBoard() {
-        mineList.clear();
-        mineGenerationStrategy.generateMines(this);
+        // limpa todas as células
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                cells[r][c] = new Cell();
+            }
+        }
+        // distribui as minas
+        strategy.generate(cells, totalMines);
     }
 
     /**
-     * Retorna a célula na posição especificada.
+     * Retorna a célula na posição (row, col).
      *
      * @param row índice da linha
      * @param col índice da coluna
-     * @return objeto Cell na posição (row, col)
+     * @return instância de Cell
      */
     public Cell getCell(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols)
+            throw new IndexOutOfBoundsException("Coordenada fora do tabuleiro");
         return cells[row][col];
     }
 
     /**
-     * Conta quantas células seguras (sem minas) ainda não foram reveladas.
+     * Conta quantas células seguras (sem mina) ainda não foram reveladas.
      *
      * @return número de células seguras restantes
      */
     public int getRemainingSafeCells() {
         int count = 0;
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                Cell cell = cells[r][c];
+        for (Cell[] row : cells) {
+            for (Cell cell : row) {
                 if (!cell.hasMine() && !cell.isRevealed()) {
                     count++;
                 }
@@ -99,37 +97,28 @@ public class Board {
     }
 
     /**
-     * Retorna o número total de minas configuradas neste tabuleiro.
+     * Conta quantas minas ainda não foram reveladas.
      *
-     * @return quantidade de minas
+     * @return número de minas restantes não reveladas
      */
     public int getRemainingMines() {
-        return totalMines;
+        int count = 0;
+        for (Cell[] row : cells) {
+            for (Cell cell : row) {
+                if (cell.hasMine() && !cell.isRevealed()) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
-    /**
-     * Retorna a lista de todas as células que foram marcadas com mina.
-     *
-     * @return ArrayList de Cells com minas
-     */
-    public ArrayList<Cell> getMineList() {
-        return mineList;
-    }
-
-    /**
-     * Retorna o número de linhas do tabuleiro.
-     *
-     * @return número de linhas(rows)
-     */
+    /** @return número de linhas do tabuleiro */
     public int getRows() {
         return rows;
     }
 
-    /**
-     * Retorna o número de colunas do tabuleiro.
-     *
-     * @return número de colunas(cols)
-     */
+    /** @return número de colunas do tabuleiro */
     public int getCols() {
         return cols;
     }

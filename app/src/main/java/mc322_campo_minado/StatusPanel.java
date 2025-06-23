@@ -19,20 +19,21 @@ public class StatusPanel extends JPanel implements Observer {
      * Construtor: inicializa o layout e os rótulos padrão.
      */
     public StatusPanel() {
-        super(new FlowLayout(FlowLayout.LEFT));
-        balanceLabel = new JLabel("Balance: --");
+        super(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        balanceLabel    = new JLabel("Balance: --");
         multiplierLabel = new JLabel("Multiplier: --");
-        statusLabel = new JLabel("Status: Ready");
-        payoutLabel = new JLabel("Payout: --");
+        statusLabel     = new JLabel("Status: Ready");
+        payoutLabel     = new JLabel("Payout: --");
 
         add(balanceLabel);
         add(multiplierLabel);
-        add(statusLabel);
         add(payoutLabel);
+        add(statusLabel);
     }
 
     /**
      * Atualiza o rótulo de multiplicador.
+     *
      * @param value novo multiplicador a ser exibido
      */
     public void updateMultiplier(double value) {
@@ -40,15 +41,8 @@ public class StatusPanel extends JPanel implements Observer {
     }
 
     /**
-     * Atualiza o rótulo de status do jogo.
-     * @param msg nova mensagem de status a ser exibida
-     */
-    public void updateStatus(String msg) {
-        statusLabel.setText("Status: " + msg);
-    }
-
-    /**
      * Atualiza o rótulo de payout (pagamento potencial da aposta).
+     *
      * @param value novo valor de payout a ser exibido
      */
     public void updatePayout(double value) {
@@ -56,7 +50,16 @@ public class StatusPanel extends JPanel implements Observer {
     }
 
     /**
-     * Define o jogador a ser observado pelo painel.
+     * Atualiza o rótulo de status do jogo.
+     *
+     * @param msg nova mensagem de status a ser exibida
+     */
+    public void updateStatus(String msg) {
+        statusLabel.setText("Status: " + msg);
+    }
+
+    /**
+     * Define o jogador a ser observado por este painel.
      * Remove o painel da lista de observadores do jogador anterior (se houver)
      * e adiciona ao novo jogador, atualizando o saldo exibido.
      *
@@ -68,16 +71,16 @@ public class StatusPanel extends JPanel implements Observer {
         }
         this.player = player;
         this.player.addObserver(this);
-        update();     // exibe o saldo atual imediatamente
+        update();  // exibe o saldo atual imediatamente
     }
 
     /**
-     * Método chamado automaticamente quando o saldo do jogador muda.
-     * Atualiza o rótulo de saldo com o valor atual.
+     * Método da interface Observer, chamado sempre que o Player notifica mudança.
+     * Aqui atualizamos o rótulo de saldo.
      */
     @Override
     public void update() {
         double balance = player.getBalance();
-        balanceLabel.setText(String.format("Balance: %.2f", balance));
+        balanceLabel.setText("Balance: " + String.format("%.2f", balance));
     }
 }

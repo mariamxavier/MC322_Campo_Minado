@@ -22,7 +22,6 @@ public class MinesweeperUI extends JFrame {
 
     // Guarda a última célula clicada para usar na dica
     private int lastClickedRow = -1, lastClickedCol = -1;
-    private CellButton lastClickedButton = null;
 
     /**
      * Construtor da interface principal.
@@ -128,7 +127,6 @@ public class MinesweeperUI extends JFrame {
         // Guarda a última célula clicada para uso da dica
         lastClickedRow = r;
         lastClickedCol = c;
-        lastClickedButton = btn;
 
         boolean safe = game.revealCell(r, c);
         if (game.getBoard().getCell(r, c).hasMine()) {

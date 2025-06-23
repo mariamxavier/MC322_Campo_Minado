@@ -1,14 +1,15 @@
 package mc322_campo_minado;
 
 /**
- * Interface para estratégias de geração de minas no tabuleiro 
- * Permite implementar diferentes formas de posicionamento das minas (aleatório, fixo).
+ * Interface Strategy para geração de minas no tabuleiro.
+ * Implementações concretas definem diferentes algoritmos de distribuição.
  */
 public interface MineGenerationStrategy {
     /**
-     * Gera as minas no tabuleiro de acordo com a estratégia implementada.
+     * Posiciona exatamente totalMines minas na matriz de células.
      *
-     * @param board tabuleiro onde as minas serão posicionadas
+     * @param cells      matriz de Cell a receber minas
+     * @param totalMines quantidade exata de minas a posicionar
      */
-    void generateMines(Board board);
+    void generate(Cell[][] cells, int totalMines);
 }
