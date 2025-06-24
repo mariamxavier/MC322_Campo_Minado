@@ -3,11 +3,12 @@
 **Data de submissão:** 23/06/2025  
 **Disciplina:** MC322 – Programação Orientada a Objetos  
 **Link Repositório GitHub**: https://github.com/mariamxavier/MC322_Campo_Minado.git
+
 **Integrantes:** 
 
 **Name:** Maria Eduarda Xavier Messias  **RA:** 183611 
 
-**Name:** Pedro Augusto de Oliveira Fernandes **RA:** 244181
+**Name:** Pedro Augusto de Oliveira Fernandes **RA: ** 244181
 
 **Name:** Everton Mendes de Almeida**RA:** 260426   
 
