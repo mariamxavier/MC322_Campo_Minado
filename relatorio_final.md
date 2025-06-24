@@ -84,7 +84,7 @@ A arquitetura adotada segue o padrão MVC (Model-View-Controller), garantindo se
 A seguir, o diagrama de classes em PlantUML:
 
 <p align="center">
-  <img src="UML.png" alt="Diagrama UML de Classes" width="800"/>
+  <img src="uml.png" alt="Diagrama UML de Classes" width="800"/>
 </p>
 
 
